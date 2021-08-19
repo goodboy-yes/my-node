@@ -30,8 +30,6 @@ JSON.stringify({
 JSON.parse("{name: '苹果 X',price: 8888}")
 ```
 
-## JS 如何单线程实现异步
-
 ## Tips
 
 - `Json`文件不能写注释

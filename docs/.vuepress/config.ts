@@ -39,7 +39,11 @@ export default defineUserConfig<DefaultThemeOptions>({
       },
       {
         text: "JS",
-        children: ["/js/code-style", "/js/knowledge-points"],
+        children: [
+          "/js/principle-analysis",
+          "/js/code-style",
+          "/js/knowledge-points",
+        ],
       },
       {
         text: "CSS",
@@ -48,6 +52,10 @@ export default defineUserConfig<DefaultThemeOptions>({
       {
         text: "GIT",
         children: ["/git/basic-command"],
+      },
+      {
+        text: "GIT",
+        children: ["/interactive"],
       },
     ],
   },
