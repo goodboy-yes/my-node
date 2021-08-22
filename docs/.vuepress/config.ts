@@ -12,9 +12,9 @@ export default defineUserConfig<DefaultThemeOptions>({
     repo: "https://github.com/goodboy-yes/my-node",
     editLink: false,
     markdown: {
-      extractHeaders: [1, 2, 3, 4],
+      extractHeaders: [1, 2, 3, 4, 5],
     },
-    sidebarDepth: 4,
+    sidebarDepth: 5,
     navbar: [
       { text: "VuePress", link: "https://v2.vuepress.vuejs.org/zh/" },
       // { text: "主页", link: "/" },
@@ -43,6 +43,10 @@ export default defineUserConfig<DefaultThemeOptions>({
           "/js/principle-analysis",
           "/js/code-style",
           "/js/knowledge-points",
+          "/js/regular-expression",
+          "/js/code-snippet",
+          "/js/performance-optimization",
+          "/js/design-pattern",
         ],
       },
       {
@@ -51,10 +55,10 @@ export default defineUserConfig<DefaultThemeOptions>({
       },
       {
         text: "GIT",
-        children: ["/git/basic-command"],
+        children: ["/git/basic-command", "/git/reset-and-revert"],
       },
       {
-        text: "GIT",
+        text: "个人实践",
         children: ["/interactive"],
       },
     ],
