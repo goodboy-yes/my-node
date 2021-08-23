@@ -61,8 +61,12 @@ export default defineUserConfig<DefaultThemeOptions>({
         text: "开发实践",
         children: [
           "/development-practice/interactive",
-          "/development-practice/technical-scheme"
+          "/development-practice/technical-scheme",
         ],
+      },
+      {
+        text: "知识点",
+        children: ["/knowledge-point/algorithm"],
       },
     ],
   },
