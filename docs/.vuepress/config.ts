@@ -51,11 +51,15 @@ export default defineUserConfig<DefaultThemeOptions>({
       },
       {
         text: "CSS",
-        children: ["/css/knowledge-points"],
+        children: ["/css/knowledge-points", "/css/bfc"],
       },
       {
         text: "GIT",
-        children: ["/git/basic-command", "/git/reset-and-revert", "/git/commit-amend"],
+        children: [
+          "/git/basic-command",
+          "/git/reset-and-revert",
+          "/git/commit-amend",
+        ],
       },
       {
         text: "开发实践",
