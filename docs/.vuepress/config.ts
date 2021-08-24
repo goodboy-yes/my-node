@@ -55,7 +55,7 @@ export default defineUserConfig<DefaultThemeOptions>({
       },
       {
         text: "GIT",
-        children: ["/git/basic-command", "/git/reset-and-revert"],
+        children: ["/git/basic-command", "/git/reset-and-revert", "/git/commit-amend"],
       },
       {
         text: "开发实践",
