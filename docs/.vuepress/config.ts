@@ -51,7 +51,11 @@ export default defineUserConfig<DefaultThemeOptions>({
       },
       {
         text: "CSS",
-        children: ["/css/knowledge-points", "/css/bfc"],
+        children: [
+          "/css/knowledge-points",
+          "/css/bfc",
+          "/css/pseudo-classes-and-elements",
+        ],
       },
       {
         text: "GIT",
@@ -70,7 +74,7 @@ export default defineUserConfig<DefaultThemeOptions>({
       },
       {
         text: "知识点",
-        children: ["/knowledge-point/algorithm"],
+        children: ["/knowledge-point/algorithm", "/knowledge-point/network"],
       },
     ],
   },
