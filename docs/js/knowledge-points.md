@@ -390,6 +390,119 @@ alert(input.getAttribute("value")); // text（没有更新！）
 </script>
 ```
 
+## JS 中数据类型检测
+
+`tyepof [value]` ：检测数据类型的运算符
+
+`[example] instanceof [class]` ： 检测某一个实例是否属于这个类
+
+`[example].constructor===[class]` ：检测实例和类关系的，从而检测数据类型
+
+`Object.prototype.toString.call([value])`：检测数据类型
+
+### typeof
+
+typeof 检测的结果是一个字符串，包含了对应的数据类型（ `number`、`string`、`boolean`、`undefined`、`object`、`function`、`symbol`、`bigint`）
+
+**优点**：使用起来简单，基本数据类型值基本上都可以有效检测，引用数据类型值也可以检测出来
+
+**局限性**：
+
+- typeof null 的结果是“object”;（这是浏览器的 BUG：所有的值在计算中都以二进制编码储存，浏览器中把前三位 000 的当作对象，而 null 的二进制前三位是 000，所以被识别为对象，但是他不是对象，他是空对象指针，是基本类型值）
+
+- typeof 普通对象/数组对象/正则对象...， 结果都是“object”，这样就无法基于 typeof 区分是普通对象还是数组对象
+
+```js
+type NaN //NaN、Infinity 都是数字类型的，检测结果都是“number”;
+
+// 判断是否为对象
+if (x != null && typeof x == "object") {
+  // ...
+}
+```
+
+### instanceof
+
+用来检测某个实例是否属于这个类，当前类的原型只要出现在了实例的原型链上就返回 true
+
+**优点**：弥补 typeof 无法细分对象类型的缺点
+
+```js
+let arr = [10, 20];
+console.log(typeof arr); //=>"object"
+console.log(arr instanceof Array); //=>true
+console.log(arr instanceof Object); //=>true 数组对象是Object的实例
+```
+
+**局限性**：
+
+- 要求检测的实例必须是对象数据类型的，基本数据类型的实例是无法基于它检测出来的（字面量方式创建的不能检测，构造函数创建的就可以检测）。从严格意义上来讲，只有实例创建出来的结果才是标准的对象数据类型值，但由于 JS 的松散特点，导致了字面量方式创建的结果可以使用 prototype 上提供的方法
+
+- 不管是什么对象，都是 Object 的实例，检测结果都是 TRUE，所以无法基于这个结果判断是否为普通对象
+
+```js
+// instanceof检测的实例必须都是引用数据类型的，它对基本数据类型值操作无效
+console.log(10 instanceof Number); //=>false
+console.log(new Number(10) instanceof Number); //=>true
+
+// instanceof检测机制：验证当前类的原型prototype是否会出现在实例的原型链__proto__上，只要在它的原型链上，则结果都为TRUE
+function Fn() {}
+Fn.prototype = Object.create(Array.prototype);
+let f = new Fn();
+console.log(f instanceof Array); //=>true f其实不是数组，因为它连数组的基本结构都是不具备的
+```
+
+### constructor
+
+判断当前的实例的 constructor 的属性值是不是预估的类。`实例.constructor` 一般都等于 `类.prototype.constructor` 也就是当前类本身（前提是 constructor 并没有被破坏）
+
+**优点**：
+
+- 能检测基本数据类型，也可细分对象类型
+
+**局限性**：
+
+- 不能够给当前类的原型进行重定向，不能够给当前实例增加私有属性 constructor，会造成检测的结果不准确
+- 存在不确定性，非常容易被修改，因为 JS 中的 constructor 是不被保护的（用户可以自己随便改）
+
+```js
+let arr = [],
+  obj = {},
+  num = 10;
+console.log(arr.constructor === Array); //=>true
+console.log(arr.constructor === Object); //=>false
+console.log(obj.constructor === Object); //=>true
+console.log(num.constructor === Number); //=>true
+```
+
+### Object.prototype.toString.call()
+
+找到 Object.prototype 上的 toString 方法，让 toString 方法执行，并且基于 call 让方法中的 this 指向检测的数据值，这样就可以实现数据类型检测了。**是最准确最常用的方式**
+
+每一种数据类型的构造函数的原型上都有 toString 方法，除了 Object.prototype 上的 toString 是用来返回当前实例所属类的信息（检测数据类型的），其余的都是转换为字符串的
+
+**优点**：专门用来检测数据类型的方法，基本上不存在局限性的数据类型检测方式,基于他可以有效的检测任何数据类型的值
+
+**局限性**：只能检测内置类，不能检测自定义类，只要是自定义类返回的都是`[Object Object]`
+
+```js
+let class2type = {};
+let toString = class2type.toString; //=>Object.prototype.toString
+
+console.log(toString.call(10)); //=>"[object Number]"
+console.log(toString.call(NaN)); //=>"[object Number]"
+console.log(toString.call("xxx")); //=>"[object String]"
+console.log(toString.call(true)); //=>"[object Boolean]"
+console.log(toString.call(null)); //=>"[object Null]"
+console.log(toString.call(undefined)); //=>"[object Undefined]"
+console.log(toString.call(Symbol())); //=>"[object Symbol]"
+console.log(toString.call(BigInt(10))); //=>"[object BigInt]"
+console.log(toString.call({ xxx: "xxx" })); //=>"[object Object]"
+console.log(toString.call([10, 20])); //=>"[object Array]"
+console.log(toString.call(/^\d+$/)); //=>"[object RegExp]"
+console.log(toString.call(function () {})); //=>"[object Function]"
+```
+
 ## Tips
 
 - `Json`文件不能写注释

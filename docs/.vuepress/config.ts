@@ -58,6 +58,10 @@ export default defineUserConfig<DefaultThemeOptions>({
         ],
       },
       {
+        text: "Vue2",
+        children: ["/vue2/knowledge-points"],
+      },
+      {
         text: "GIT",
         children: [
           "/git/basic-command",
