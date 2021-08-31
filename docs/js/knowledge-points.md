@@ -1,14 +1,30 @@
 # 知识点
 
-## 省略`http:`前缀
+## Tips
 
-如果你对形如 `//cdn.com/id/app_a6976b6d.css` 这样的 URL 感到陌生，你需要知道这种 `URL` 省掉了前面的 `http:` 或者 `https:` 前缀， 这样做的好处时在访问这些资源的时候会自动的根据当前`HTML` 的 `URL` 是采用什么模式去决定是采用 `HTTP` 还是 `HTTPS` 模式。
+- `Json`文件不能写注释
 
-```css
-body {
-  background: url(//cdn.com/id/arch_ae805d49.png) repeat;
-}
-```
+- 移动端开发为什么不使用`jquery`：
+  1、`jquery`体积大
+  2、`jquery`做了大量的兼容，移动端都是高版本浏览器，没有必要做兼容，并不是说一定不用，最好不要用
+
+- `{color:'blue', 'font-size':5px}`对象里键名里有`-`的要加引号
+
+- `!!`常常用来做类型判断，省去了多次判断 null、undefined 和空字符串的冗余代码
+  ```js
+  if (!!a) {
+    //a有内容才执行的代码...
+  }
+  ```
+- 省略`http:`前缀
+
+  如果你对形如 `//cdn.com/id/app_a6976b6d.css` 这样的 URL 感到陌生，你需要知道这种 `URL` 省掉了前面的 `http:` 或者 `https:` 前缀， 这样做的好处时在访问这些资源的时候会自动的根据当前`HTML` 的 `URL` 是采用什么模式去决定是采用 `HTTP` 还是 `HTTPS` 模式。
+
+  ```css
+  body {
+    background: url(//cdn.com/id/arch_ae805d49.png) repeat;
+  }
+  ```
 
 ## json 对象和普通 JS 对象的区别
 
@@ -37,132 +53,6 @@ JSON.parse('{"name": "苹果 X","price": "8888"}')
 当 `JavaScript` 引擎首次读取脚本时，会创建一个全局执行上下文并将其 Push 到当前执行栈中。每当发生函数调用时，引擎都会为该函数创建一个新的执行上下文并 Push 到当前执行栈的栈顶。
 
 引擎会运行执行上下文在执行栈栈顶的函数，根据 `LIFO` 规则，当此函数运行完成后，其对应的执行上下文将会从执行栈中 Pop 出，上下文控制权将转到当前执行栈的下一个执行上下文
-
-## split() 、splice()、slice()
-
-### split()
-
-**定义和用法**
-
-split() 方法用于把一个字符串分割成字符串数组。
-
-**语法**
-
-```js
-stringObject.split(separator, howmany);
-```
-
-| 参数      | 描述                                                                                                                                                       |
-| :-------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| separator | 必需。字符串或正则表达式，从该参数指定的地方分割 stringObject。                                                                                            |
-| howmany   | 可选。该参数可指定返回的数组的最大长度。如果设置了该参数，返回的子串不会多于这个参数指定的数组。如果没有设置该参数，整个字符串都会被分割，不考虑它的长度。 |
-
-```js
-const str = "How are you doing today?";
-
-console.log(str.split(" "));
-console.log(str.split(""));
-console.log(str.split(" ", 3));
-```
-
-输出：
-
-```
-How,are,you,doing,today?
-H,o,w, ,a,r,e, ,y,o,u, ,d,o,i,n,g, ,t,o,d,a,y,?
-How,are,you
-```
-
-### splice()
-
-**定义和用法**
-
-splice() 方法向/从数组中添加/删除项目，然后返回被删除的项目。
-
-**该方法会改变原始数组。**
-
-**语法**
-
-```js
-arrayObject.splice(index,howmany,item1,.....,itemX)
-```
-
-| 参数              | 描述                                                                  |
-| :---------------- | :-------------------------------------------------------------------- |
-| index             | 必需。整数，规定添加/删除项目的位置，使用负数可从数组结尾处规定位置。 |
-| howmany           | 必需。要删除的项目数量。如果设置为 0，则不会删除项目。                |
-| item1, ..., itemX | 可选。向数组添加的新项目。                                            |
-
-**返回值**
-
-| 类型  | 描述                                 |
-| :---- | :----------------------------------- |
-| Array | 包含被删除项目的新数组，如果有的话。 |
-
-```js
-const arr = ["George", "John", "Thomas", "James", "Adrew", "Martin"];
-console.log(arr);
-arr.splice(2, 0, "William");
-console.log(arr);
-```
-
-输出：
-
-```
-George,John,Thomas,James,Adrew,Martin
-George,John,William,Thomas,James,Adrew,Martin
-```
-
-### slice()
-
-**定义和用法**
-
-`slice()` 方法可从已有的数组（或字符串）中返回选定的元素。
-
-该方法并**不会修改数组**，而是返回一个子数组。如果想删除数组中的一段元素，应该使用方法 `Array.splice()`。
-
-**语法**
-
-```js
-arrayObject.slice(start, end);
-```
-
-| 参数  | 描述                                                                                                                                                                                          |
-| :---- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| start | 必需。规定从何处开始选取。如果是负数，那么它规定从数组尾部开始算起的位置。也就是说，-1 指最后一个元素，-2 指倒数第二个元素，以此类推。                                                        |
-| end   | 可选。规定从何处结束选取。该参数是数组片断结束处的数组下标。如果没有指定该参数，那么切分的数组包含从 start 到数组结束的所有元素。如果这个参数是负数，那么它规定的是从数组尾部开始算起的元素。 |
-
-```js
-const arr = ["George", "John", "Thomas", "James", "Adrew", "Martin"];
-arr.slice(2, 4); //Thomas,James
-```
-
-## Slice 无参调用
-
-Slice 无参调用可以将对象转化成数组，**数组的 Slice 无参调用是浅拷贝**，复制出新的 Array，再里面嵌套的内容是引用
-
-**类似数组的对象**
-
-- DOM 操作返回的 NodeList 集合
-- 函数内部的`arguments`对象
-- ```javascript
-  let arrayLike = {
-    0: "a",
-    1: "b",
-    2: "c",
-    length: 3,
-  };
-  ```
-
-**转为数组的方法**
-
-```javascript
-// ES5的写法
-var arr1 = [].slice.call(arrayLike); // ['a', 'b', 'c']
-
-// ES6的写法
-let arr2 = Array.from(arrayLike); // ['a', 'b', 'c']
-```
 
 ## call()，apply()，bind()区别
 
@@ -390,6 +280,166 @@ alert(input.getAttribute("value")); // text（没有更新！）
 </script>
 ```
 
+## for in 和 for of 的区别
+
+### for in
+
+不要使用 for in 遍历数组，会存在诸多问题
+
+- index 索引为字符串型数字，不能直接进行几何运算，但可以使用 arr[index]
+- 遍历顺序有可能不是按照实际数组的内部顺序
+- 使用 for in 会遍历数组所有的可枚举属性，包括原型
+
+可用 for in 遍历对象，并且也会遍历到对象的原型方法，如果不想遍历原型方法和属性的话，可以在循环内部使用 hasOwnPropery 方法判断属性是否是该对象的实例属性
+
+```js
+for (var key in myObject) {
+　　if（myObject.hasOwnProperty(key)){
+　　　　console.log(key);
+　　}
+}
+```
+
+或者使用`Object.keys(obj)`获取对象的实例属性组成的数组，不包括原型方法和属性
+
+### for of
+
+- for of 遍历数组是遍历元素值，不包括数组的原型属性，不可得到索引
+- for of 循环不支持普通对象
+- for..of 适用遍历数/数组对象/字符串/map/set 等拥有迭代器对象的集合，但是不能遍历对象，因为没有迭代器对象。与 `forEach()`不同的是，它可以正确响应 `break`、`continue` 和 `return` 语句
+- 遍历 map 对象时适合用解构,例如;
+  ```js
+  for (var [key, value] of phoneBookMap) {
+    console.log(key + "'s phone number is: " + value);
+  }
+  ```
+
+## split() 、splice()、slice()
+
+### split()
+
+**定义和用法**
+
+split() 方法用于把一个字符串分割成字符串数组。
+
+**语法**
+
+```js
+stringObject.split(separator, howmany);
+```
+
+| 参数      | 描述                                                                                                                                                       |
+| :-------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| separator | 必需。字符串或正则表达式，从该参数指定的地方分割 stringObject。                                                                                            |
+| howmany   | 可选。该参数可指定返回的数组的最大长度。如果设置了该参数，返回的子串不会多于这个参数指定的数组。如果没有设置该参数，整个字符串都会被分割，不考虑它的长度。 |
+
+```js
+const str = "How are you doing today?";
+
+console.log(str.split(" "));
+console.log(str.split(""));
+console.log(str.split(" ", 3));
+```
+
+输出：
+
+```
+How,are,you,doing,today?
+H,o,w, ,a,r,e, ,y,o,u, ,d,o,i,n,g, ,t,o,d,a,y,?
+How,are,you
+```
+
+### splice()
+
+**定义和用法**
+
+splice() 方法向/从数组中添加/删除项目，然后返回被删除的项目。
+
+**该方法会改变原始数组。**
+
+**语法**
+
+```js
+arrayObject.splice(index,howmany,item1,.....,itemX)
+```
+
+| 参数              | 描述                                                                  |
+| :---------------- | :-------------------------------------------------------------------- |
+| index             | 必需。整数，规定添加/删除项目的位置，使用负数可从数组结尾处规定位置。 |
+| howmany           | 必需。要删除的项目数量。如果设置为 0，则不会删除项目。                |
+| item1, ..., itemX | 可选。向数组添加的新项目。                                            |
+
+**返回值**
+
+| 类型  | 描述                                 |
+| :---- | :----------------------------------- |
+| Array | 包含被删除项目的新数组，如果有的话。 |
+
+```js
+const arr = ["George", "John", "Thomas", "James", "Adrew", "Martin"];
+console.log(arr);
+arr.splice(2, 0, "William");
+console.log(arr);
+```
+
+输出：
+
+```
+George,John,Thomas,James,Adrew,Martin
+George,John,William,Thomas,James,Adrew,Martin
+```
+
+### slice()
+
+**定义和用法**
+
+`slice()` 方法可从已有的数组（或字符串）中返回选定的元素。
+
+该方法并**不会修改数组**，而是返回一个子数组。如果想删除数组中的一段元素，应该使用方法 `Array.splice()`。
+
+**语法**
+
+```js
+arrayObject.slice(start, end);
+```
+
+| 参数  | 描述                                                                                                                                                                                          |
+| :---- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| start | 必需。规定从何处开始选取。如果是负数，那么它规定从数组尾部开始算起的位置。也就是说，-1 指最后一个元素，-2 指倒数第二个元素，以此类推。                                                        |
+| end   | 可选。规定从何处结束选取。该参数是数组片断结束处的数组下标。如果没有指定该参数，那么切分的数组包含从 start 到数组结束的所有元素。如果这个参数是负数，那么它规定的是从数组尾部开始算起的元素。 |
+
+```js
+const arr = ["George", "John", "Thomas", "James", "Adrew", "Martin"];
+arr.slice(2, 4); //Thomas,James
+```
+
+## Slice 无参调用
+
+Slice 无参调用可以将对象转化成数组，**数组的 Slice 无参调用是浅拷贝**，复制出新的 Array，再里面嵌套的内容是引用
+
+**类似数组的对象**
+
+- DOM 操作返回的 NodeList 集合
+- 函数内部的`arguments`对象
+- ```javascript
+  let arrayLike = {
+    0: "a",
+    1: "b",
+    2: "c",
+    length: 3,
+  };
+  ```
+
+**转为数组的方法**
+
+```javascript
+// ES5的写法
+var arr1 = [].slice.call(arrayLike); // ['a', 'b', 'c']
+
+// ES6的写法
+let arr2 = Array.from(arrayLike); // ['a', 'b', 'c']
+```
+
 ## JS 中数据类型检测
 
 `tyepof [value]` ：检测数据类型的运算符
@@ -502,20 +552,3 @@ console.log(toString.call([10, 20])); //=>"[object Array]"
 console.log(toString.call(/^\d+$/)); //=>"[object RegExp]"
 console.log(toString.call(function () {})); //=>"[object Function]"
 ```
-
-## Tips
-
-- `Json`文件不能写注释
-
-- 移动端开发为什么不使用`jquery`：
-  1、`jquery`体积大
-  2、`jquery`做了大量的兼容，移动端都是高版本浏览器，没有必要做兼容，并不是说一定不用，最好不要用
-
-- `{color:'blue', 'font-size':5px}`对象里键名里有`-`的要加引号
-
-- `!!`常常用来做类型判断，省去了多次判断 null、undefined 和空字符串的冗余代码
-  ```js
-  if (!!a) {
-    //a有内容才执行的代码...
-  }
-  ```
