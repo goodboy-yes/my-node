@@ -62,12 +62,20 @@ export default defineUserConfig<DefaultThemeOptions>({
         children: ["/vue2/knowledge-points"],
       },
       {
-        text: "GIT",
+        text: "Vue3",
+        children: ["/vue3/difference-from-vue2", "/vue3/vite"],
+      },
+      {
+        text: "Git",
         children: [
           "/git/basic-command",
           "/git/reset-and-revert",
           "/git/commit-amend",
         ],
+      },
+      {
+        text: "Webpack",
+        children: ["/webpack/principle-analysis"],
       },
       {
         text: "开发实践",
