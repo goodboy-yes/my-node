@@ -18,13 +18,13 @@
 
 ### 如何使用组合式 api?
 
-![图片](https://mmbiz.qpic.cn/mmbiz_png/YBFV3Da0NwtQ4TIGEr9DGn52wOHBHoD9pvUBib4zr6USA9upSN8BJccBAB34o4s6F6lic8Ux3Oxia24mqUbANNo2g/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
+![图片](./images/difference-from-vue2/composition-api.webp)
 
 为了开始使用组合式 API，我们首先需要一个可以实际使用它的地方。在 Vue 组件中，我们将此位置称为 `setup`。
 
 > 在 `setup` 中你应该避免使用 `this`，因为它不会找到组件实例。`setup` 的调用发生在 `data` property、`computed` property 或 `methods` 被解析之前，所以它们无法在 `setup` 中被获取。
 
-**带 `ref` 的响应式变量**
+#### 带 `ref` 的响应式变量
 
 在 Vue 3.0 中，我们可以通过一个新的 `ref` 函数使任何响应式变量在任何地方起作用，如下所示：
 
@@ -34,15 +34,31 @@ const counter = ref(0);
 console.log(counter); // { value: 0 }
 ```
 
-将值封装在一个对象中，这样我们就可以在整个应用中安全地传递它，而不必担心在某个地方失去它的响应性。`Number` 或 `String` 等基本类型是通过值而非引用传递的：
+将值封装在一个对象中，这样我们就可以在整个应用中安全地传递它，而不必担心在某个地方失去它的响应性。`Number` 或 `String` 等基本类型是通过值而非引用传递的。换句话说，`ref` 为我们的值创建了一个**响应式引用**。
 
-> 换句话说，`ref` 为我们的值创建了一个**响应式引用**。
+#### 在 `setup` 内使用 computer
 
-**在 `setup` 内注册生命周期钩子**
+```js
+const multiple = computed(() => value * 2);
+```
+
+#### 在 `setup` 内使用 watch
+
+```js
+watch(user, getUserRepositories);
+```
+
+#### 在 `setup` 内注册生命周期钩子
 
 为了使组合式 API 的功能和选项式 API 一样完整，我们还需要一种在 `setup` 中注册生命周期钩子的方法。组合式 API 上的生命周期钩子与选项式 API 的名称相同，但前缀为 `on`：即 `mounted` 看起来会像 `onMounted`。
 
+```js
+onMounted(getUserRepositories);
+```
+
 > 因为 `setup` 是在 `beforeCreate` 和 `created` 生命周期钩子之前运行的，所以不需要显式地定义它们。换句话说，在这些钩子中编写的任何代码都应该直接在 `setup` 函数中编写。
+
+#### 使用示例
 
 ```js
 // src/components/UserRepositories.vue `setup` function
@@ -208,35 +224,71 @@ export default {
 }
 ```
 
-### reactive、ref 与 toRefs
+### reactive、ref 、toRef 与 toRefs
 
-#### 数据定义
+在 vue2.x 中， 定义数据都是在data中， 但是 Vue3.x 可以使用reactive、ref 、toRef 与 toRefs来进行数据定义。
 
-在 vue2.x 中， 定义数据都是在`data`中， 但是 Vue3.x 可以使用`reactive`和`ref`来进行数据定义。
+**reactive**
 
-`reactive`用于处理对象的双向绑定（不能用于基本类型）
+用于处理对象的双向绑定（不能用于基本类型）
 
-`ref`一般用于处理 js 基础类型的双向绑定（也可用于对象）
+**ref**
+
+一般用于处理 js 基础类型的双向绑定（也可用于对象，对于基本数据类型，ref是自己的实现方式且性能优于reactive，而对于对象类型，ref仍然是通过reactive包装实现的），ref 的本质是拷贝，与原始数据没有引用关系，因此当用于对象时，改变创建的响应式数据，原始数据并不会改变
 
 ```js
  setup() {
-    const obj = reactive({count:1, name:"张三"})
+    const obj = {count:1, name:"张三"}
+    const newObj = reactive({count:1, name:"张三"})
     const age = ref(0)
+    const _count = ref(obj.count)
     setTimeout(() =>{
-        obj.count = obj.count + 1
-        obj.name = "李四"
-        age.value = 18
+      newObj.name = "李四"
+      age.value = 18
+      _count.value = 2
     }, 1000)
     return{
-        obj,
-        age
+      newObj,
+      age
     }
   }
 ```
 
-#### 属性解构
+`ref(obj.count)`相当于 `ref(1)`相当于 `reactive({value:1})`，所以在修改数据时，是修改 `_count.value=xxx`
 
-上面的代码中，我们绑定到页面是通过`obj.name`,`obj.count`；这样写很繁琐我们能不能直接将`user`中的属性解构出来使用呢?答案是不能直接对`user`进行结构， 这样会消除它的响应式，解决办法就是**使用`toRefs`**
+**toRef**
+
+toRef接收两个参数：源响应式对象和属性名， 将源响应式对象中的属性变成响应式数据，修改响应式数据是会影响到原始数据的，但是需要注意，**toRef 的本质是引用，与原始数据有关联**，且如果修改通过 toRef 创建的响应式数据，**并不会触发 UI 界面的更新。**
+
+```js
+import {toRef} from 'vue';
+export default {
+  name:'App'
+  setup(){
+    let obj = {name : 'alice', age : 12};
+    let newObj= toRef(obj, 'name');
+    function change(){
+      newObj.value = 'Tom';
+      console.log(obj,newObj)
+    }
+    return {newObj,change}
+  }
+}
+```
+
+上述代码，当 change 执行的时候，响应式数据发生改变，原始数据 obj 会改变，但是 UI 界面不会更新
+
+`ref` 和 `toRef` 的区别
+
+- ref 本质是拷贝，修改响应式数据不会影响原始数据；toRef 的本质是引用关系，修改响应式数据会影响原始数据
+- ref 数据发生改变，界面会自动更新；toRef 当数据发生改变是，界面不会自动更新
+- toRef 传参与 ref 不同；toRef 接收两个参数，第一个参数是哪个对象，第二个参数是对象的哪个属性
+
+**toRefs**
+
+toRefs 用于批量设置多个数据为响应式数据(toRef 一次仅能设置一个数据)，toRefs 接收一个对象作为参数，它会遍历对象身上的所有属性，然后挨个调用 toRef 执行。常用于es6的解构赋值操作，因为在对一个响应式对象直接解构时解构后的数据将不再有响应式，而使用toRefs可以方便解决这一问题。
+
+之前代码中，我们绑定到页面是通过`obj.name`，`obj.count`，这样写很繁琐，我们能不能直接将user中的属性解构出来使用呢？答案是不能直接对user进行结构， 这样会消除它的响应式，解决办法就是使用toRefs
 
 ```vue
 <template>
@@ -267,17 +319,28 @@ export default defineComponent({
 </script>
 ```
 
+**总结**
+
+|          | 处理数据类型       | 获取数据值方式 | 原始数据变化 | 模板变化 |
+| -------- | ------------------ | -------------- | ------------ | -------- |
+| ref      | 主要是基本数据类型 | .value         | 无           | 有       |
+| reactive | 对象，数组         | 无需加.value   | 有           | 有       |
+| toRef    | 对象属性           | .value         | 有           | 无       |
+| toRefs   | 对象               | .value         | 有           | 无       |
+
+- setup里定义数据时推荐优先使用ref，方便逻辑拆分和业务解耦。
+
 ### 生命周期
 
 Vue3.0 新增了`setup`，然后是将 Vue2.x 中的`beforeDestroy`名称变更成`beforeUnmount`; `destroyed` 表更为 `unmounted`，作者说这么变更纯粹是为了更加语义化，因为一个组件是一个`mount`和`unmount`的过程。其他 Vue2 中的生命周期仍然保留。
 
-<img src="https://mmbiz.qpic.cn/mmbiz_png/YBFV3Da0NwtQ4TIGEr9DGn52wOHBHoD95EibW4wu3ZQt3Cyn4oP3bCQTcAsKL4E8sZfJgtniannlNoA11icKYrN7Q/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="图片" style="zoom: 33%;" />
+![图片](./images/difference-from-vue2/life-cycle.png)
 
-所以生命周期钩子如下
+所有生命周期钩子如下
 
-![图片](https://mmbiz.qpic.cn/mmbiz_png/YBFV3Da0NwtQ4TIGEr9DGn52wOHBHoD9LpcOkCDQibNHqYVIg21hrCZCqsib0ta4kFuTwk0ZJ0zpgiaMIvIkc8AicA/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
+![图片](./images/difference-from-vue2/life-cycle-comparison.webp)
 
-Vue3 中仍然可以使用`beforeCreate`和`created`， 因为 Vue3 是向下兼容的， 也就是你实际使用的是 vue2 的。其次，钩子命名都增加了`on`; Vue3.x 还新增用于调试的钩子函数`onRenderTriggered`和`onRenderTricked`
+Vue3 中仍然可以使用`beforeCreate`和`created`， 因为 Vue3 是向下兼容的， 也就是你实际使用的是 vue2 的。其次，钩子命名都增加了`on`；Vue3.x 还新增用于调试的钩子函数`onRenderTriggered`和`onRenderTricked`
 
 其中需要注意的是
 
@@ -340,15 +403,15 @@ export default defineComponent({
 
 watch 函数用来侦听特定的数据源，并在回调函数中执行副作用。默认情况是惰性的，也就是说仅在侦听的源数据变更时才执行回调。
 
-```
-watch(source, callback, [options])
+```js
+watch(source, callback, [options]);
 ```
 
 参数说明：
 
-- source:可以支持 string,Object,Function,Array; 用于指定要侦听的响应式变量
+- source:可以支持 `string`，`Object`，`Function`，`Array`; 用于指定要侦听的响应式变量
 - callback: 执行的回调函数
-- options：支持 deep、immediate 和 flush 选项。
+- options：支持 ` deep``、immediate ` 和 `flush` 选项。
 
 ```js
 import { defineComponent, ref, reactive, toRefs, watch } from "vue";
@@ -413,6 +476,12 @@ export default defineComponent({
 
 #### watchEffect
 
+`watchEffect`会自动收集依赖, 只要指定一个回调函数。在组件初始化时， 会先执行一次来收集依赖， 然后当收集到的依赖中数据发生变化时， 就会再次执行回调函数。所以总结对比如下：
+
+- watchEffect 不需要手动传入依赖
+- watchEffect 会先执行一次用来自动收集依赖
+- watchEffect 无法获取到变化前的值， 只能获取变化后的值
+
 ```js
 import { defineComponent, ref, reactive, toRefs, watchEffect } from "vue";
 export default defineComponent({
@@ -437,12 +506,6 @@ export default defineComponent({
 });
 ```
 
-`watchEffect`会自动收集依赖, 只要指定一个回调函数。在组件初始化时， 会先执行一次来收集依赖， 然后当收集到的依赖中数据发生变化时， 就会再次执行回调函数。所以总结对比如下：
-
-- watchEffect 不需要手动传入依赖
-- watchEffect 会先执行一次用来自动收集依赖
-- watchEffect 无法获取到变化前的值， 只能获取变化后的值
-
 ### setup
 
 使用 `setup` 函数时，它将接收两个参数：
@@ -454,7 +517,7 @@ export default defineComponent({
 
 **prop**
 
-`props` 是响应式的，当传入新的 prop 时，它将被更新，并且可以通过使用 `watchEffect` 或 `watch` 进行观测和响应。使用 ES6 解构会消除 prop 的响应性。如果需要解构 prop，可以在 `setup` 函数中使用 [`toRefs`](https://v3.cn.vuejs.org/guide/reactivity-fundamentals.html#响应式状态解构) 函数来完成此操作：
+`props` 是响应式的，当传入新的 prop 时，它将被更新，并且可以通过使用 `watchEffect` 或 `watch` 进行观测和响应。使用 ES6 解构会消除 prop 的响应性。如果需要解构 prop，可以在 `setup` 函数中使用 [toRefs](https://v3.cn.vuejs.org/guide/reactivity-fundamentals.html#响应式状态解构) 函数来完成此操作：
 
 ```js
 import { toRefs } from 'vue'
@@ -1225,7 +1288,7 @@ Vue.directive("highlight", {
 
 **3.x 语法**
 
-![图片](https://mmbiz.qpic.cn/mmbiz_png/YBFV3Da0NwtQ4TIGEr9DGn52wOHBHoD9yDIQnamDF1WaicPXxhJNR7UxADOwL09HqtI3Qia4uSWtgqRIUp5gMfoA/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
+![图片](./images/difference-from-vue2/life-cycle-comparison.webp)
 
 - bind → **beforeMount**
 - inserted → **mounted**

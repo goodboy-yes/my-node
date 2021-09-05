@@ -552,3 +552,40 @@ console.log(toString.call([10, 20])); //=>"[object Array]"
 console.log(toString.call(/^\d+$/)); //=>"[object RegExp]"
 console.log(toString.call(function () {})); //=>"[object Function]"
 ```
+
+## 报错代码与 eventloop
+
+```js
+console.log(a);
+console.log("执行");
+// Uncaught ReferenceError: a is not defined
+```
+
+可以看到第一句代码报错后，后面的代码并没有执行，这符合我们平常的开发认知
+
+```js
+setTimeout(() => {
+  console.log(a);
+}, 0);
+console.log("执行");
+// 执行
+// Uncaught ReferenceError: a is not defined
+```
+
+异步代码出错，并不会影响后面同步代码的执行，让我们来看下一个例子
+
+```js
+setTimeout(() => {
+  console.log("执行1");
+}, 0);
+console.log(a);
+setTimeout(() => {
+  console.log("执行2");
+}, 0);
+// Uncaught ReferenceError: a is not defined
+// 执行1
+```
+
+结果是第一个异步代码执行了，这是 eventloop 的经典场景，js 是单线程执行的，所以出现未捕获的异常必然会导致后面的代码不执行。例子里面，代码从上往下执行，执行`settimeout`时只是把回调推进事件队列，如果前面代码就报错了，自然不会有把回调放入事件队列这个动作，所以不会执行回调。换言之，先有`settimeout`的话，已经加入到队列了，后面同步代码报错，但是事件队列里已经有这个回调了，js 线程会取队列下一个任务继续执行，所以就出现第一个定时器的代码执行了，第二个不执行。
+
+如果我们想要保证某块可能出错的同步代码后面的代码继续执行的话，那么我们必须对这块同步代码进行异常捕获。

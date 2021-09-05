@@ -88,6 +88,10 @@ export default defineUserConfig<DefaultThemeOptions>({
         text: "知识点",
         children: ["/knowledge-point/algorithm", "/knowledge-point/network"],
       },
+      {
+        text: "发展建议",
+        link: "/development-proposals",
+      },
     ],
   },
 });
