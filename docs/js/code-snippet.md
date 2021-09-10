@@ -78,3 +78,38 @@ num.toString(16);
 num.toString(8);
 // 输出: "12"
 ```
+
+## 复制内容到剪贴板
+
+```js
+export function copyToBoard(value) {
+  const element = document.createElement("textarea");
+  document.body.appendChild(element);
+  element.value = value;
+  element.select();
+  if (document.execCommand("copy")) {
+    document.execCommand("copy");
+    document.body.removeChild(element);
+    return true;
+  }
+  document.body.removeChild(element);
+  return false;
+}
+```
+
+# 休眠
+
+```js
+/**
+ * 休眠xxxms
+ * @param {Number} milliseconds
+ */
+export function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+//使用方式
+const fetchData = async () => {
+  await sleep(1000);
+};
+```
