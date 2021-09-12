@@ -616,7 +616,7 @@ app.component('modal-button', { template: `
 `, data() { return { modalOpen: false } } })
 ```
 
-`telepor`将被渲染在 body 下
+`teleport`将被渲染在 body 下
 
 ## 片段
 
@@ -712,7 +712,7 @@ vue3 中可以显示声明 emits，这对于其他开发人员立即了解该组
 **v-model 在 vue2.x 中的使用方式**
 
 ```html
-<ChildComponent v-model = "title />
+<ChildComponent v-model="title" />
 ```
 
 它实际上是下面这种写法的简写：
@@ -887,9 +887,9 @@ app.component('my-component', {
 app.mount('#app')
 ```
 
-当组件的 `created` 生命周期钩子触发时，`modelModifiers` prop 包含 `capitalize`，其值为 `true`——因为它被设置在 `v-model` 绑定 `v-model.capitalize="bar"`。
+当组件的 `created` 生命周期钩子触发时，`modelModifiers` prop 包含 `capitalize`，其值为 `true`——因为它被设置在 `v-model` 绑定`v-model.capitalize="bar"`。
 
-上面代码通过检查 `modelModifiers` 对象键并编写一个处理器来更改发出的值。每当 <input/> 元素触发 input 事件时，我们都将字符串大写。
+上面代码通过检查 `modelModifiers` 对象键并编写一个处理器来更改发出的值。每当 `<input/>` 元素触发 input 事件时，我们都将字符串大写。
 
 对于带参数的 `v-model` 绑定，生成的 prop 名称将为 `arg + "Modifiers"`：
 
@@ -935,7 +935,7 @@ Vue.directive("focus", {
 虽然这种声明方式很方便，但它也会导致一些问题。从技术上讲，Vue 2 没有“app”的概念，我们定义的应用只是通过 `new Vue()` 创建的根 Vue 实例。从同一个 Vue 构造函数**创建的每个根实例共享相同的全局配置**
 
 ```vue
-new Vue({ components: { App }, router, store, template: '
+new Vue( { components: { App }, router, store, template: '
 <App />
 ' }).$mount('#app');
 ```
@@ -1092,7 +1092,7 @@ export function render() {
 
 这实际上意味着只有在应用程序实际使用了 `Transition` 组件时才会导入它。换句话说，如果应用程序没有任何 `Transition` 组件，那么支持此功能的代码将不会出现在最终的捆绑包中。随着全局 tree-shaking，，框架大小在将来已经不再是其他核心功能的考虑因素了，如果有的话，可选特性不会增加不使用它们的应用程序的捆绑包大小
 
-## `key`attribute
+## key attribute
 
 - 对于 `v-if`/`v-else`/`v-else-if` 的各分支项 `key` 将不再是必须的，因为现在 Vue 会自动生成唯一的 `key`。如果你手动提供 `key`，那么每个分支必须使用唯一的 `key`。你不能通过故意使用相同的 `key` 来强制重用分支
 
@@ -1288,7 +1288,7 @@ Vue.directive("highlight", {
 
 **3.x 语法**
 
-![图片](./images/difference-from-vue2/life-cycle-comparison.webp)
+![图片](./images/difference-from-vue2/custom-instruction.webp)
 
 - bind → **beforeMount**
 - inserted → **mounted**
