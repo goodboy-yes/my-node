@@ -69,6 +69,7 @@ export default defineUserConfig<DefaultThemeOptions>({
         text: "Git",
         children: [
           "/git/basic-command",
+          "/git/commit-standard",
           "/git/reset-and-revert",
           "/git/commit-amend",
         ],
@@ -80,6 +81,7 @@ export default defineUserConfig<DefaultThemeOptions>({
       {
         text: "开发实践",
         children: [
+          "/development-practice/refactoring",
           "/development-practice/interactive",
           "/development-practice/technical-scheme",
         ],
@@ -91,6 +93,10 @@ export default defineUserConfig<DefaultThemeOptions>({
       {
         text: "发展建议",
         link: "/development-proposals",
+      },
+      {
+        text: "VSCode",
+        link: "/vs-code",
       },
     ],
   },

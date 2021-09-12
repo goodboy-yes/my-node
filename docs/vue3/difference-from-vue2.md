@@ -226,7 +226,7 @@ export default {
 
 ### reactive、ref 、toRef 与 toRefs
 
-在 vue2.x 中， 定义数据都是在data中， 但是 Vue3.x 可以使用reactive、ref 、toRef 与 toRefs来进行数据定义。
+在 vue2.x 中， 定义数据都是在 data 中， 但是 Vue3.x 可以使用 reactive、ref 、toRef 与 toRefs 来进行数据定义。
 
 **reactive**
 
@@ -234,7 +234,7 @@ export default {
 
 **ref**
 
-一般用于处理 js 基础类型的双向绑定（也可用于对象，对于基本数据类型，ref是自己的实现方式且性能优于reactive，而对于对象类型，ref仍然是通过reactive包装实现的），ref 的本质是拷贝，与原始数据没有引用关系，因此当用于对象时，改变创建的响应式数据，原始数据并不会改变
+一般用于处理 js 基础类型的双向绑定（也可用于对象，对于基本数据类型，ref 是自己的实现方式且性能优于 reactive，而对于对象类型，ref 仍然是通过 reactive 包装实现的），ref 的本质是拷贝，与原始数据没有引用关系，因此当用于对象时，改变创建的响应式数据，原始数据并不会改变
 
 ```js
  setup() {
@@ -258,7 +258,7 @@ export default {
 
 **toRef**
 
-toRef接收两个参数：源响应式对象和属性名， 将源响应式对象中的属性变成响应式数据，修改响应式数据是会影响到原始数据的，但是需要注意，**toRef 的本质是引用，与原始数据有关联**，且如果修改通过 toRef 创建的响应式数据，**并不会触发 UI 界面的更新。**
+toRef 接收两个参数：源响应式对象和属性名， 将源响应式对象中的属性变成响应式数据，修改响应式数据是会影响到原始数据的，但是需要注意，**toRef 的本质是引用，与原始数据有关联**，且如果修改通过 toRef 创建的响应式数据，**并不会触发 UI 界面的更新。**
 
 ```js
 import {toRef} from 'vue';
@@ -281,14 +281,14 @@ export default {
 `ref` 和 `toRef` 的区别
 
 - ref 本质是拷贝，修改响应式数据不会影响原始数据；toRef 的本质是引用关系，修改响应式数据会影响原始数据
-- ref 数据发生改变，界面会自动更新；toRef 当数据发生改变是，界面不会自动更新
+- ref 数据发生改变，界面会自动更新；toRef 当数据发生改变时，界面不会自动更新
 - toRef 传参与 ref 不同；toRef 接收两个参数，第一个参数是哪个对象，第二个参数是对象的哪个属性
 
 **toRefs**
 
-toRefs 用于批量设置多个数据为响应式数据(toRef 一次仅能设置一个数据)，toRefs 接收一个对象作为参数，它会遍历对象身上的所有属性，然后挨个调用 toRef 执行。常用于es6的解构赋值操作，因为在对一个响应式对象直接解构时解构后的数据将不再有响应式，而使用toRefs可以方便解决这一问题。
+toRefs 用于批量设置多个数据为响应式数据(toRef 一次仅能设置一个数据)，toRefs 接收一个对象作为参数，它会遍历对象身上的所有属性，然后挨个调用 toRef 执行。常用于 es6 的解构赋值操作，因为在对一个响应式对象直接解构时解构后的数据将不再有响应式，而使用 toRefs 可以方便解决这一问题。
 
-之前代码中，我们绑定到页面是通过`obj.name`，`obj.count`，这样写很繁琐，我们能不能直接将user中的属性解构出来使用呢？答案是不能直接对user进行结构， 这样会消除它的响应式，解决办法就是使用toRefs
+之前代码中，我们绑定到页面是通过`obj.name`，`obj.count`，这样写很繁琐，我们能不能直接将 user 中的属性解构出来使用呢？答案是不能直接对 user 进行结构， 这样会消除它的响应式，解决办法就是使用 toRefs
 
 ```vue
 <template>
@@ -328,7 +328,7 @@ export default defineComponent({
 | toRef    | 对象属性           | .value         | 有           | 无       |
 | toRefs   | 对象               | .value         | 有           | 无       |
 
-- setup里定义数据时推荐优先使用ref，方便逻辑拆分和业务解耦。
+- setup 里定义数据时推荐优先使用 ref，方便逻辑拆分和业务解耦。
 
 ### 生命周期
 
@@ -411,7 +411,7 @@ watch(source, callback, [options]);
 
 - source:可以支持 `string`，`Object`，`Function`，`Array`; 用于指定要侦听的响应式变量
 - callback: 执行的回调函数
-- options：支持 ` deep``、immediate ` 和 `flush` 选项。
+- options：支持 ` deep`、`immediate ` 和 `flush` 选项。
 
 ```js
 import { defineComponent, ref, reactive, toRefs, watch } from "vue";
