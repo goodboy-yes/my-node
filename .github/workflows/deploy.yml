@@ -20,7 +20,7 @@ jobs: #任务名
         uses: peaceiris/actions-gh-pages@v3 # 使用部署到 GitHub pages 的 action
         with:
           publish_dir: docs/.vuepress/dist # 部署目录
-          github_token: ${{ secrets.NOTE_DEPLOY }} # secret 名
+          github_token: ${{ secrets.NOTE_DEPLOY2 }} # secret 名
           user_name: ${{ secrets.MY_USER_NAME }}
           user_email: ${{ secrets.MY_USER_EMAIL }}
           commit_message: Update my-note # 部署时的 git 提交信息，自由填写
