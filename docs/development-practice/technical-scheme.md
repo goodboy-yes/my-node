@@ -20,9 +20,9 @@ date-fns 提供了最全面、最简单且一致的工具集，用于在浏览�
 
 FileSaver.js 在没有原生支持 saveAs() 的浏览器上实现了 saveAs() 接口。是文件下载的标杆项目。
 
-## 更多NPM包
+## 更多 NPM 包
 
->[让我告诉你一些强无敌的 NPM 软件包](https://juejin.cn/post/6950584088462163982)
+> [让我告诉你一些强无敌的 NPM 软件包](https://juejin.cn/post/6950584088462163982)
 
 ## 网页离开时的请求发送
 
@@ -34,3 +34,21 @@ FileSaver.js 在没有原生支持 saveAs() 的浏览器上实现了 saveAs() �
 
 使用 `sendBeacon()` 方法会使用户代理在有机会时异步地向服务器发送数据，同时不会延迟页面的卸载或影响下一导航的载入性能。这就解决了提交分析数据时的所有的问题：数据可靠，传输异步并且不会影响下一页面的加载。此外，代码实际上还要比其他技术简单许多！
 
+## 解决 node_modules 中第三方库 bug
+
+一般来说，解决 node_modules 中第三方库的 bug 大概有两种思路：
+
+- 第一种思路是将第三方库中有问题的文件 copy 一份进行修复，放在项目目录里面(非 node_modules)，然后通过构建工具 `resolve.alias` 能力重定向到修复后的位置。
+
+- 另一种是通过 `patch-package` 记录 node_modules 更改记录，生成 patches 目录，然后通过项目的 post-install 脚本在团队中同步这个更改，实现第三方库的临时 patch，当然这也适合其他第三方库问题的临时修复。
+
+```
+// 1. 安装
+yarn add patch-package postinstall-postinstall
+// 2. 修改 node_modules 代码后执行：
+yarn patch-package react-virtualized
+// 3. package.json 中 scripts 增加：
+{
+"postinstall": "patch-package"
+}
+```
