@@ -40,13 +40,14 @@ export default defineUserConfig<DefaultThemeOptions>({
       {
         text: "JS",
         children: [
-          "/js/principle-analysis",
-          "/js/code-style",
           "/js/knowledge-points",
-          "/js/regular-expression",
           "/js/code-snippet",
+          "/js/regular-expression",
+          "/js/file-operation",
+          "/js/code-style",
           "/js/performance-optimization",
           "/js/design-pattern",
+          "/js/principle-analysis",
         ],
       },
       {
@@ -81,6 +82,7 @@ export default defineUserConfig<DefaultThemeOptions>({
       {
         text: "开发实践",
         children: [
+          "/development-practice/functional-programming",
           "/development-practice/refactoring",
           "/development-practice/interactive",
           "/development-practice/technical-scheme",
