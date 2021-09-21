@@ -1,6 +1,34 @@
 # 设计模式
 
-### 策略模式
+## 工厂模式
+
+简单的工厂模式可以理解为解决多个相似的问题
+
+```js
+function CreatePerson(name, age, sex) {
+  var obj = new Object();
+  obj.name = name;
+  obj.age = age;
+  obj.sex = sex;
+  obj.sayName = function () {
+    return this.name;
+  };
+  return obj;
+}
+var p1 = new CreatePerson("longen", "28", "男");
+var p2 = new CreatePerson("tugenhua", "27", "女");
+console.log(p1.name); // longen
+console.log(p1.age); // 28
+console.log(p1.sex); // 男
+console.log(p1.sayName()); // longen
+
+console.log(p2.name); // tugenhua
+console.log(p2.age); // 27
+console.log(p2.sex); // 女
+console.log(p2.sayName()); // tugenhua
+```
+
+## 策略模式
 
 策略模式就是将一系列算法封装起来，并使它们相互之间可以替换。被封装起来的算法具有独立性，外部不可改变其特性
 
@@ -98,7 +126,7 @@ console.log(countPrice.getPirce("full500", 599));
 
 当然，策略模式的优点是有目共睹的，将一个个算法封装起来，提高代码复用率，减少代码冗余；策略模式可看作为`if/else`判断的另一种表现形式，在达到相同目的的同时，极大的减少了代码量以及代码维护成本。
 
-### 单例模式
+## 单例模式
 
 **什么是单例模式？**
 
@@ -133,7 +161,7 @@ a.bang = "123";
 alert(b.bang); // 123
 ```
 
-### 发布订阅
+## 发布订阅
 
 仿 vue 源码
 
@@ -231,6 +259,21 @@ EventBus.prototype.$on = function (event, fn) {
 
 EventBus.prototype.emit....// 其余函数实现见上方
 
+```
+
+## 沙箱模式
+
+将一些函数放到自执行函数里面,但要用闭包暴露接口,用变量接收暴露的接口,再调用里面的值,否则无法使用里面的值
+
+```js
+let sandboxModel = (function () {
+  function sayName() {}
+  function sayAge() {}
+  return {
+    sayName: sayName,
+    sayAge: sayAge,
+  };
+})();
 ```
 
 > [参考链接](https://www.zhihu.com/people/jacobwuzdong/posts)
