@@ -42,13 +42,29 @@ FileSaver.js 在没有原生支持 saveAs() 的浏览器上实现了 saveAs() �
 
 - 另一种是通过 `patch-package` 记录 node_modules 更改记录，生成 patches 目录，然后通过项目的 post-install 脚本在团队中同步这个更改，实现第三方库的临时 patch，当然这也适合其他第三方库问题的临时修复。
 
-```
-// 1. 安装
-yarn add patch-package postinstall-postinstall
-// 2. 修改 node_modules 代码后执行：
-yarn patch-package react-virtualized
-// 3. package.json 中 scripts 增加：
-{
-"postinstall": "patch-package"
-}
-```
+  ```
+  // 1. 安装
+  npm i patch-package
+  //of
+  yarn add patch-package postinstall-postinstall
+
+  // 2. 修改 node_modules 代码后执行：
+  yarn patch-package package-name(修改的包名)
+  //of
+  npx patch-package package-name（npm版本 > 5.2）
+
+  // 3. package.json 中 scripts 增加：
+  "scripts": {
+      ***,
+  +   "postinstall": "patch-package"
+  }
+  ```
+
+  手动删除 node_modules 文件夹，重新执行 npm install 安装依赖包。可以看到在依赖包安装结束后执行了 patch-package 命令，之前生成的补丁被应用了。
+  最后将 patches 文件夹推送到远端仓库，日后无论是谁拉取代码，安装依赖，我们之前修改的部分都会生效的
+
+  **注意事项：**
+  patch 是锁定版本号的，如果升级了版本，patch 内容将会失效，最好在 package.json 能够锁定版本号。
+  魔改的同时，也局限了升级的能力，尽量还是去提 issue 和 PR。
+
+  [patch-package-官方](https://github.com/ds300/patch-package)
