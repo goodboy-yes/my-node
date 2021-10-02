@@ -56,6 +56,7 @@ export default defineUserConfig<DefaultThemeOptions>({
           "/css/knowledge-points",
           "/css/bfc",
           "/css/pseudo-classes-and-elements",
+          "/css/aspect-ratio",
         ],
       },
       {
