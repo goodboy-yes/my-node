@@ -18,7 +18,7 @@
 
 header 是必选的，但是 header 里的 scope 是可选的
 
-```
+```bash
 <type>(<scope>): <subject>
 <body>
 <footer>
@@ -65,7 +65,7 @@ subject 是 commit 目的的简短描述，不超过 50/80 个字符，结尾不
 
 在 git commit 上使用 emoji 提供了一种简单的方法，仅通过查看所使用的表情符号来确定提交的目的或意图
 
-```git
+```bash
 $ git commit -m ':tada: init commit'
 ```
 
@@ -83,7 +83,7 @@ $ git commit -m ':tada: init commit'
 
 **安装 Commitizen**
 
-```
+```bash
 npm install commitizen -D
 ```
 
@@ -91,7 +91,7 @@ npm install commitizen -D
 
 成功安装 Commitizen 后，我们用 `cz-conventional-changelog` 适配器来初始化项目：
 
-```
+```bash
 npx commitizen init cz-conventional-changelog --save-dev --save-exact
 ```
 
@@ -100,7 +100,7 @@ npx commitizen init cz-conventional-changelog --save-dev --save-exact
 - 安装 `cz-conventional-changelog` 到开发依赖（devDependencies）
 - 在 package.json 中增加了 config.commitizen
 
-```
+```bash
 "config": {
     "commitizen": {
         "path": "./node_modules/cz-conventional-changelog"
@@ -118,7 +118,7 @@ git cz 终端操作提示都是英文的，如果想改成中文的或者自定�
 
 运行如下命令使用 cz-customizable 初始化项目，注意之前已经初始化过一次，这次再初始化，需要加 --force 覆盖。
 
-```
+```bash
 npx commitizen init cz-customizable --save-dev --save-exact --force
 ```
 
@@ -128,7 +128,7 @@ npx commitizen init cz-customizable --save-dev --save-exact --force
 
 - 修改 package.json 中的 config.commitizen 字段为：
 
-```
+```bash
 "config": {
   "commitizen": {
     "path": "./node_modules/cz-customizable"
@@ -140,7 +140,7 @@ npx commitizen init cz-customizable --save-dev --save-exact --force
 
 在项目根目录下创建 .cz-config.js 文件，然后按照官方提供的[示例](https://github.com/leoforfree/cz-customizable/blob/master/cz-config-EXAMPLE.js)来配置
 
-```
+```js
 module.exports = {
   // type 类型（定义之后，可通过上下键选择）
   types: [
@@ -235,15 +235,15 @@ module.exports = {
 
 在项目根目录下创建 `commitlint.config.js` 文件，并填入以下内容：
 
-```
-module.exports = { extends: ['@commitlint/config-conventional'] }
+```js
+module.exports = { extends: ["@commitlint/config-conventional"] };
 ```
 
 **使用 husky 的 commit-msg hook 触发验证提交信息的命令**
 
 我们使用 husky 命令在 .husky 目录下创建 commit-msg 文件，并在此执行 commit message 的验证命令。
 
-```
+```bash
 npx husky add .husky/commit-msg "npx --no-install commitlint --edit $1"
 ```
 

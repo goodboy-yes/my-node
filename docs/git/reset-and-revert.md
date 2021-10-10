@@ -2,24 +2,26 @@
 
 ## git reset
 
-`reset`用于回退版本，有三种模式，soft,mixed,hard
+reset 用于回退版本，有三种模式，soft、mixed、hard
 ![](https://upload-images.jianshu.io/upload_images/4428238-fcad08ebe26933a6.png?imageMogr2/auto-orient/strip|imageView2/2/w/638/format/webp)
 
-### reset --hard
+### --hard
+
 **重置 stage 区和工作目录**
 
-`reset --hard` 会在重置 HEAD 和branch的同时，重置stage区和工作目录里的内容。当你在 reset 后面加了 --hard 参数时，你的 stage 区和工作目录里的内容会被完全重置为和 HEAD 的新位置相同的内容。换句话说，就是你的没有 commit 的修改会被全部擦掉。
+`reset --hard` 会在重置 HEAD 和 branch 的同时，重置 stage 区和工作目录里的内容。当你在 reset 后面加了 --hard 参数时，你的 stage 区和工作目录里的内容会被完全重置为和 HEAD 的新位置相同的内容。换句话说，就是你的没有 commit 的修改会被全部擦掉。
 
-### reset --soft
+### --soft
+
 **保留工作目录，并把重置 HEAD 所带来的新的差异放进暂存区**
 
 `reset --soft` 会在重置 HEAD 和 branch 时，保留工作目录和暂存区中的内容，并把重置 HEAD 所带来的新的差异放进暂存区。
 
-### reset 不加参数(mixed)
+### --mixed
+
 **保留工作目录，并清空暂存区**
 
 `reset` 如果不加参数，那么默认使用 `--mixed` 参数。它的行为是：保留工作目录，并且清空暂存区。也就是说，工作目录的修改、暂存区的内容以及由 reset 所导致的新的文件差异，都会被放进工作目录。简而言之，就是「把所有差异都混合（mixed）放在工作目录中」。
-
 
 ```bash
 git reset --<参数> HEAD^ //回退到上一个提交
