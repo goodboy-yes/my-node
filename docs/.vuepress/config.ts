@@ -57,6 +57,7 @@ export default defineUserConfig<DefaultThemeOptions>({
           "/css/bfc",
           "/css/pseudo-classes-and-elements",
           "/css/aspect-ratio",
+          "/css/skill",
         ],
       },
       {
