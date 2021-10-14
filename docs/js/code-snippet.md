@@ -158,6 +158,21 @@ const fetchData = async () => {
 };
 ```
 
+### 解析连接 url
+
+```js
+// 创建a标签
+const aEle = document.createElement("a");
+// 给a标签赋值href路径
+aEle.href = "/test.html";
+// 访问aEle中的属性
+aEle.protocol; // 获取协议
+aEle.pathname; // 获取path
+aEle.origin;
+aEle.host;
+aEle.search;
+```
+
 ### 从 URL 获取查询参数
 
 ```js
@@ -175,6 +190,14 @@ const getParameters = (URL) => {
 
 getParameters(window.location.search); //goole.com?search=easy&page=3
 // Result: { search : "easy", page : 3 }
+```
+
+或者
+
+```js
+const q = {};
+location.search.replace(/([^?&=]+)=([^&]+)/g, (_, k, v) => (q[k] = v));
+console.log(q);
 ```
 
 或者
