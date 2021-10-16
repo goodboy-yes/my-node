@@ -39,6 +39,13 @@ array.reduce((a, b) => (a < b ? a : b)); // 最小值
 const shuffle = (arr) => arr.sort(() => 0.5 - Math.random());
 ```
 
+### 生成指定长度的数组
+
+```javascript
+const List = (len) => [...new Array(len).keys()];
+const list = List(10); // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+```
+
 ## DOM 操作
 
 ### 回到顶部
@@ -123,12 +130,46 @@ num.toString(8);
 ### 颜色 RGB 转十六进制
 
 ```js
+// (1 << 24)的作用为保证结果是6位数
+// slice(1)的作用是去除字符串的最高位，即前面加的(1 << 24)
 const rgbToHex = (r, g, b) =>
   "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 
 rgbToHex(0, 51, 255);
 // Result: #0033ff
 ```
+
+### 位运算提升效率
+
+```javascript
+// ｜ 取整
+let num1 = 1.7;
+num1 = num1 | 0;
+
+// << 加倍
+let num3 = 6;
+num3 = num3 << 1; / / 12
+
+// & 判断奇数
+let num6 = 10;
+let num7 = 11;
+num6 & 1 === 1; // true
+num7 & 1 === 1; // false
+
+// ^ 交换值
+let num4 = 10;
+let num5 = 20;
+num4 ^= num5; // num4 = num4^num5 ^:异或
+num5 ^= num4;
+num4 ^= num5; // num4 === 20, num5 === 10
+
+// ~ 判断是否存在
+const data = '123456';
+const key = '3';
+const keyIsExist = !!~data.indexOf(key); // true ~：否运算符
+```
+
+[位运算](https://goodboy-yes.github.io/my-notes/js/bit-operation.html)
 
 ## 脚本操作
 
@@ -206,6 +247,30 @@ console.log(q);
 Object.fromEntries(new URLSearchParams(window.location.search));
 ```
 
+或者
+
+```javascript
+//利用 new URL 解析 URL
+const parseURL = (url = "") => {
+  const res = new URL(url);
+  res.queryParams = (key) => {
+    if (key) {
+      //res.searchParams: URLSearchParams {}
+      return res.searchParams.get(key);
+    }
+    const params = {};
+    const paramGroup = res.search.replace(/^\?/, "").split("&");
+    paramGroup.forEach((param) => {
+      const [key, val] = param.split("=");
+      params[key] = val;
+    });
+    return params;
+  };
+  return res;
+};
+parseURL("https://www.example.com/a/b?c=1&d=2");
+```
+
 ### 生成随机字符串
 
 ```js
@@ -238,3 +303,21 @@ firstFunction();
 ```
 
 new Error().stack 这样就能随时获取到当前代码执行的调用栈信息，也不失一种调试代码的办法
+
+### 判断数据类型
+
+```javascript
+const type = (data) => {
+  let toString = Object.prototype.toString;
+  const dataType =
+    data instanceof Element
+      ? "element" // 为了统一DOM节点类型输出
+      : toString
+          .call(data)
+          .replace(/\[object\s(.+)\]/, "$1")
+          .toLowerCase();
+  return dataType;
+};
+
+type({}); // object
+```

@@ -42,6 +42,7 @@ export default defineUserConfig<DefaultThemeOptions>({
         children: [
           "/js/knowledge-points",
           "/js/code-snippet",
+          "/js/bit-operation",
           "/js/regular-expression",
           "/js/file-operation",
           "/js/code-style",

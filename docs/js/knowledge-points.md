@@ -26,7 +26,85 @@
   }
   ```
 
-## json 对象和普通 JS 对象的区别
+## 概念
+
+### 执行栈
+
+执行栈，也叫调用栈，具有 `LIFO`（Last in, First out 后进先出）结构，用于存储在代码执行期间创建的所有执行上下文。
+
+当 `JavaScript` 引擎首次读取脚本时，会创建一个全局执行上下文并将其 Push 到当前执行栈中。每当发生函数调用时，引擎都会为该函数创建一个新的执行上下文并 Push 到当前执行栈的栈顶。
+
+引擎会运行执行上下文在执行栈栈顶的函数，根据 `LIFO` 规则，当此函数运行完成后，其对应的执行上下文将会从执行栈中 Pop 出，上下文控制权将转到当前执行栈的下一个执行上下文
+
+## 机制
+
+### Slice 无参调用
+
+Slice 无参调用可以将对象转化成数组，**数组的 Slice 无参调用是浅拷贝**，复制出新的 Array，再里面嵌套的内容是引用
+
+**类似数组的对象**
+
+- DOM 操作返回的 NodeList 集合
+- 函数内部的`arguments`对象
+- ```javascript
+  let arrayLike = {
+    0: "a",
+    1: "b",
+    2: "c",
+    length: 3,
+  };
+  ```
+
+**转为数组的方法**
+
+```javascript
+// ES5的写法
+var arr1 = [].slice.call(arrayLike); // ['a', 'b', 'c']
+
+// ES6的写法
+let arr2 = Array.from(arrayLike); // ['a', 'b', 'c']
+```
+
+### 报错代码与 eventloop
+
+```js
+console.log(a);
+console.log("执行");
+// Uncaught ReferenceError: a is not defined
+```
+
+可以看到第一句代码报错后，后面的代码并没有执行，这符合我们平常的开发认知
+
+```js
+setTimeout(() => {
+  console.log(a);
+}, 0);
+console.log("执行");
+// 执行
+// Uncaught ReferenceError: a is not defined
+```
+
+异步代码出错，并不会影响后面同步代码的执行，让我们来看下一个例子
+
+```js
+setTimeout(() => {
+  console.log("执行1");
+}, 0);
+console.log(a);
+setTimeout(() => {
+  console.log("执行2");
+}, 0);
+// Uncaught ReferenceError: a is not defined
+// 执行1
+```
+
+结果是第一个异步代码执行了，这是 eventloop 的经典场景，js 是单线程执行的，所以出现未捕获的异常必然会导致后面的代码不执行。例子里面，代码从上往下执行，执行`settimeout`时只是把回调推进事件队列，如果前面代码就报错了，自然不会有把回调放入事件队列这个动作，所以不会执行回调。换言之，先有`settimeout`的话，已经加入到队列了，后面同步代码报错，但是事件队列里已经有这个回调了，js 线程会取队列下一个任务继续执行，所以就出现第一个定时器的代码执行了，第二个不执行。
+
+如果我们想要保证某块可能出错的同步代码后面的代码继续执行的话，那么我们必须对这块同步代码进行异常捕获。
+
+## 对比
+
+### json 对象和普通 JS 对象的区别
 
 JSON 是 JavaScript 原生格式，它是一种严格的 js 对象的格式，JSON 的属性名必须有**双**引号，如果值是字符串，也必须是**双**引号。
 
@@ -46,15 +124,7 @@ JSON.stringify({
 JSON.parse('{"name": "苹果 X","price": "8888"}')
 ```
 
-## 执行栈
-
-执行栈，也叫调用栈，具有 `LIFO`（Last in, First out 后进先出）结构，用于存储在代码执行期间创建的所有执行上下文。
-
-当 `JavaScript` 引擎首次读取脚本时，会创建一个全局执行上下文并将其 Push 到当前执行栈中。每当发生函数调用时，引擎都会为该函数创建一个新的执行上下文并 Push 到当前执行栈的栈顶。
-
-引擎会运行执行上下文在执行栈栈顶的函数，根据 `LIFO` 规则，当此函数运行完成后，其对应的执行上下文将会从执行栈中 Pop 出，上下文控制权将转到当前执行栈的下一个执行上下文
-
-## call()，apply()，bind()区别
+### call()，apply()，bind()区别
 
 `bind()` 返回的是一个函数
 
@@ -76,7 +146,7 @@ const newFoo = foo.bind(myObject);
 newFoo(); // { value: 100 }
 ```
 
-## Set、WeakSet 和 array
+### Set、WeakSet 和 array
 
 Set 与 Array 是不同的两种数据结构，它并不是要完全替换 Array，而是提供额外的数据类型来完成 Array 缺少的一些功能
 
@@ -115,7 +185,7 @@ Set 与 Array 是不同的两种数据结构，它并不是要完全替换 Array
 
 - WeakSet 中的对象都是弱引用，即垃圾回收机制不考虑 WeakSet 对该对象的引用，也就是说，如果其他对象都不再引用该对象，那么垃圾回收机制会自动回收该对象所占用的内存，不考虑该对象还存在于 WeakSet 之中。WeakSet 适合临时存放一组对象，以及存放跟对象绑定的信息。只要这些对象在外部消失，它在 WeakSet 里面的引用就会自动消失。WeakSet 的一个用处，是储存 DOM 节点，而不用担心这些节点从文档移除时，会引发内存泄漏。
 
-## Map、WeakMap 和 object
+### Map、WeakMap 和 object
 
 JavaScript 的对象（Object），本质上是键值对的集合（Hash 结构），但是传统上只能用字符串当作键。map 类似于对象，也是键值对的集合，但是“键”的范围不限于字符串，各种类型的值（包括对象）都可以当作键。也就是说，Object 结构提供了“字符串—值”的对应，Map 结构提供了“值—值”的对应，是一种更完善的 Hash 结构实现。
 
@@ -174,7 +244,7 @@ JavaScript 的对象（Object），本质上是键值对的集合（Hash 结构�
 > 参考链接:
 > [Set 和 Map 数据结构](https://es6.ruanyifeng.com/#docs/set-map)
 
-## Attributes 和 DOM Properties
+### Attributes 和 DOM Properties
 
 我们知道浏览器在加载页面之后会对页面中的标签进行解析，并生成与之相符的 DOM 对象，每个标签中都可能包含一些属性，如果这些属性是**标准属性**，那么解析生成的 DOM 对象中也会包含与之对应的属性
 
@@ -280,9 +350,9 @@ alert(input.getAttribute("value")); // text（没有更新！）
 </script>
 ```
 
-## for in 和 for of 的区别
+### for in 和 for of 的区别
 
-### for in
+#### for in
 
 不要使用 for in 遍历数组，会存在诸多问题
 
@@ -302,7 +372,7 @@ for (var key in myObject) {
 
 或者使用`Object.keys(obj)`获取对象的实例属性组成的数组，不包括原型方法和属性
 
-### for of
+#### for of
 
 - for of 遍历数组是遍历元素值，不包括数组的原型属性，不可得到索引
 - for of 循环不支持普通对象
@@ -314,9 +384,9 @@ for (var key in myObject) {
   }
   ```
 
-## split() 、splice()、slice()
+### split() 、splice()、slice()
 
-### split()
+#### split()
 
 **定义和用法**
 
@@ -349,7 +419,7 @@ H,o,w, ,a,r,e, ,y,o,u, ,d,o,i,n,g, ,t,o,d,a,y,?
 How,are,you
 ```
 
-### splice()
+#### splice()
 
 **定义和用法**
 
@@ -389,7 +459,7 @@ George,John,Thomas,James,Adrew,Martin
 George,John,William,Thomas,James,Adrew,Martin
 ```
 
-### slice()
+#### slice()
 
 **定义和用法**
 
@@ -413,34 +483,7 @@ const arr = ["George", "John", "Thomas", "James", "Adrew", "Martin"];
 arr.slice(2, 4); //Thomas,James
 ```
 
-## Slice 无参调用
-
-Slice 无参调用可以将对象转化成数组，**数组的 Slice 无参调用是浅拷贝**，复制出新的 Array，再里面嵌套的内容是引用
-
-**类似数组的对象**
-
-- DOM 操作返回的 NodeList 集合
-- 函数内部的`arguments`对象
-- ```javascript
-  let arrayLike = {
-    0: "a",
-    1: "b",
-    2: "c",
-    length: 3,
-  };
-  ```
-
-**转为数组的方法**
-
-```javascript
-// ES5的写法
-var arr1 = [].slice.call(arrayLike); // ['a', 'b', 'c']
-
-// ES6的写法
-let arr2 = Array.from(arrayLike); // ['a', 'b', 'c']
-```
-
-## JS 中数据类型检测
+### JS 中数据类型检测
 
 `tyepof [value]` ：检测数据类型的运算符
 
@@ -450,7 +493,7 @@ let arr2 = Array.from(arrayLike); // ['a', 'b', 'c']
 
 `Object.prototype.toString.call([value])`：检测数据类型
 
-### typeof
+#### typeof
 
 typeof 检测的结果是一个字符串，包含了对应的数据类型（ `number`、`string`、`boolean`、`undefined`、`object`、`function`、`symbol`、`bigint`）
 
@@ -471,7 +514,7 @@ if (x != null && typeof x == "object") {
 }
 ```
 
-### instanceof
+#### instanceof
 
 用来检测某个实例是否属于这个类，当前类的原型只要出现在了实例的原型链上就返回 true
 
@@ -502,7 +545,7 @@ let f = new Fn();
 console.log(f instanceof Array); //=>true f其实不是数组，因为它连数组的基本结构都是不具备的
 ```
 
-### constructor
+#### constructor
 
 判断当前的实例的 constructor 的属性值是不是预估的类。`实例.constructor` 一般都等于 `类.prototype.constructor` 也就是当前类本身（前提是 constructor 并没有被破坏）
 
@@ -525,7 +568,7 @@ console.log(obj.constructor === Object); //=>true
 console.log(num.constructor === Number); //=>true
 ```
 
-### Object.prototype.toString.call()
+#### Object.prototype.toString.call()
 
 找到 Object.prototype 上的 toString 方法，让 toString 方法执行，并且基于 call 让方法中的 this 指向检测的数据值，这样就可以实现数据类型检测了。**是最准确最常用的方式**
 
@@ -552,40 +595,3 @@ console.log(toString.call([10, 20])); //=>"[object Array]"
 console.log(toString.call(/^\d+$/)); //=>"[object RegExp]"
 console.log(toString.call(function () {})); //=>"[object Function]"
 ```
-
-## 报错代码与 eventloop
-
-```js
-console.log(a);
-console.log("执行");
-// Uncaught ReferenceError: a is not defined
-```
-
-可以看到第一句代码报错后，后面的代码并没有执行，这符合我们平常的开发认知
-
-```js
-setTimeout(() => {
-  console.log(a);
-}, 0);
-console.log("执行");
-// 执行
-// Uncaught ReferenceError: a is not defined
-```
-
-异步代码出错，并不会影响后面同步代码的执行，让我们来看下一个例子
-
-```js
-setTimeout(() => {
-  console.log("执行1");
-}, 0);
-console.log(a);
-setTimeout(() => {
-  console.log("执行2");
-}, 0);
-// Uncaught ReferenceError: a is not defined
-// 执行1
-```
-
-结果是第一个异步代码执行了，这是 eventloop 的经典场景，js 是单线程执行的，所以出现未捕获的异常必然会导致后面的代码不执行。例子里面，代码从上往下执行，执行`settimeout`时只是把回调推进事件队列，如果前面代码就报错了，自然不会有把回调放入事件队列这个动作，所以不会执行回调。换言之，先有`settimeout`的话，已经加入到队列了，后面同步代码报错，但是事件队列里已经有这个回调了，js 线程会取队列下一个任务继续执行，所以就出现第一个定时器的代码执行了，第二个不执行。
-
-如果我们想要保证某块可能出错的同步代码后面的代码继续执行的话，那么我们必须对这块同步代码进行异常捕获。
