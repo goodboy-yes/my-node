@@ -1,4 +1,4 @@
-# 代码段
+# 小技巧
 
 ## 时间处理
 
@@ -46,6 +46,31 @@ const List = (len) => [...new Array(len).keys()];
 const list = List(10); // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 ```
 
+### 检查数组中的假值
+
+```javascript
+const myArray = [null, false, "Hello", undefined, 0];
+
+// 过滤虚值
+const filtered = myArray.filter(Boolean);
+console.log(filtered); // ['Hello']
+
+// 检查至少一个值是否为真
+const anyTruthy = myArray.some(Boolean);
+console.log(anyTruthy); // true
+
+// 检查所有的值是否为真
+const allTruthy = myArray.every(Boolean);
+console.log(allTruthy); // false
+```
+Boolean 函数本身接受一个参数，并根据参数的真实性返回 true 或 false。所以：
+```javascript
+myArray.filter(val => Boolean(val));
+```
+等价于：
+```javascript
+myArray.filter(Boolean);
+```
 ## DOM 操作
 
 ### 回到顶部
@@ -320,4 +345,17 @@ const type = (data) => {
 };
 
 type({}); // object
+```
+
+### 有条件地向对象添加属性
+
+我们可以使用展开运算符号(...)来有条件地向 JS 对象快速添加属性。
+
+```javascript
+const condition = true;
+const person = {
+  id: 1,
+  name: "John Doe",
+  ...(condition && { age: 16 }),
+};
 ```

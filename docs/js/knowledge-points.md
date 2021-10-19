@@ -36,6 +36,64 @@
 
 引擎会运行执行上下文在执行栈栈顶的函数，根据 `LIFO` 规则，当此函数运行完成后，其对应的执行上下文将会从执行栈中 Pop 出，上下文控制权将转到当前执行栈的下一个执行上下文
 
+## API
+
+### Number.EPSILON
+
+在 JS 当中，`Number` 类型实际上是 `double` 类型，运算小数时存在精度问题。因为计算机只认识二进制，在进行运算时，需要将其他进制的数值转换成二进制，然后再进行计算
+
+双精度浮点数的小数部分最多支持 53 位二进制位，所以两者相加后，因浮点数小数位的限制而截断的二进制数字，再转换为十进制，就成了 0.30000000000000004，这样在进行算术计算时会产生误差。
+
+```javascript
+console.log(0.1 + 0.2); // 0.30000000000000004
+```
+
+ES6 在 Number 对象上面，新增一个极小的常量 `Number.EPSILON`。它表示 1 与大于 1 的最小浮点数之间的差。对于 64 位浮点数来说，大于 1 的最小浮点数相当于二进制的 1.00..001，小数点后面有连续 51 个零。这个值减去 1 之后，就等于 2 的-52 次方。
+
+`Number.EPSILON`实际上是 JavaScript 能够表示的最小精度。误差如果小于这个值，就可以认为已经没有意义了，即不存在误差了。
+
+引入一个这么小的量的目的，在于为浮点数计算，设置一个误差范围。我们知道浮点数计算是不精确的。
+
+```javascript
+0.1 + 0.2 - 0.3 < Number.EPSILON; // true
+```
+
+### getOwnPropertyDescriptors
+
+获取对象的描述信息
+
+`Object.assign` 复制时，将对象的属性和方法当做普通属性来复制，并不会复制完整的描述信息，比如 this。
+
+```js
+const p1 = {
+  a: "y",
+  b: "d",
+  get name() {
+    return `${this.a} ${this.b}`;
+  },
+};
+const p2 = Object.assign({}, p1);
+p2.a = "z";
+p2.name; // y d; 发现并没有修改p2.a的值，是因为this仍旧指向p1
+```
+
+使用 `Object.getOwnPropertyDescriptors` 获取完整描述信息
+
+```js
+const description = Object.getOwnPropertyDescriptors(p1);
+const p2 = Object.defineProperties({}, description);
+p2.a = "z";
+p2.name; // z d
+```
+
+### document.designMode
+
+打开浏览器控制台，输入以下内容打开设计模式可以编辑页面上的任何内容
+
+```javascript
+document.designMode = "on";
+```
+
 ## 机制
 
 ### Slice 无参调用
@@ -44,16 +102,17 @@ Slice 无参调用可以将对象转化成数组，**数组的 Slice 无参调�
 
 **类似数组的对象**
 
-- DOM 操作返回的 NodeList 集合
-- 函数内部的`arguments`对象
-- ```javascript
-  let arrayLike = {
-    0: "a",
-    1: "b",
-    2: "c",
-    length: 3,
-  };
-  ```
+DOM 操作返回的 NodeList 集合
+函数内部的`arguments`对象
+
+```javascript
+let arrayLike = {
+  0: "a",
+  1: "b",
+  2: "c",
+  length: 3,
+};
+```
 
 **转为数组的方法**
 
@@ -594,4 +653,52 @@ console.log(toString.call({ xxx: "xxx" })); //=>"[object Object]"
 console.log(toString.call([10, 20])); //=>"[object Array]"
 console.log(toString.call(/^\d+$/)); //=>"[object RegExp]"
 console.log(toString.call(function () {})); //=>"[object Function]"
+```
+
+### defineProperty 和 defineProperties
+
+#### Object.defineProperty
+
+该方法会直接在一个对象上定义 一个 新属性，或者修改一个对象的现有属性
+
+`Object.defineProperty( obj , prop , descriptor )`
+
+- obj : 要定义属性的对象。
+
+- prop : 要定义或修改的属性的名称或 Symbol 。
+
+- descriptor : 要定义或修改的属性描述符
+
+```js
+Object.defineProperty(obj, "key", {
+  enumerable: false,
+  configurable: false,
+  writable: false,
+  value: "static",
+});
+```
+
+#### Object.defineProperties
+
+方法直接在一个对象上定义 一个或多个 新的属性或修改现有属性
+
+`Object.defineProperties( obj , props )`
+
+- obj :在其上定义或修改属性的对象。
+
+- props:定义其可枚举属性或修改的属性描述符的对象
+
+```js
+var obj = {};
+Object.defineProperties(obj, {
+  property1: {
+    value: true,
+    writable: true,
+  },
+  property2: {
+    value: "Hello",
+    writable: false,
+  },
+  // etc. etc.
+});
 ```
