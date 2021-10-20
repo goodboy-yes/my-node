@@ -63,14 +63,19 @@ console.log(anyTruthy); // true
 const allTruthy = myArray.every(Boolean);
 console.log(allTruthy); // false
 ```
+
 Boolean 函数本身接受一个参数，并根据参数的真实性返回 true 或 false。所以：
+
 ```javascript
-myArray.filter(val => Boolean(val));
+myArray.filter((val) => Boolean(val));
 ```
+
 等价于：
+
 ```javascript
 myArray.filter(Boolean);
 ```
+
 ## DOM 操作
 
 ### 回到顶部
@@ -358,4 +363,58 @@ const person = {
   name: "John Doe",
   ...(condition && { age: 16 }),
 };
+```
+
+### 使用 Promise 取消请求
+
+当 Button 被频繁点击时，会在短时间内发出大量的请求，同时也会因请求响应的先后次序不同而导致渲染的数据与预期不符
+
+我们通常只希望渲染最后一次发出请求响应的数据，而其他数据则丢弃。因此，我们需要丢弃（或不处理）除最后一次请求外的其他请求的响应数据。
+
+axios 已经有了很好的实践，在 axios 中因为所有异步都是由 xhr 发出的，所以 axios 的实现中还借助了 xhr.abort()来取消一个请求。
+
+在这里我们使用 Promise 来实现这个功能
+
+```javascript
+function CancelablePromise() {
+  this.pendingPromise = null;
+}
+
+// 包装一个请求并取消重复请求
+CancelablePromise.prototype.request = function (requestFn) {
+  if (this.pendingPromise) {
+    this.cancel("取消重复请求");
+  }
+  const _promise = new Promise((resolve, reject) => (this.reject = reject));
+  this.pendingPromise = Promise.race([requestFn(), _promise]);
+  return this.pendingPromise;
+};
+
+// 取消当前请求
+CancelablePromise.prototype.cancel = function (reason) {
+  // this.reject存放了上一次请求_promise的reject
+  this.reject(new Error(reason));
+  this.pendingPromise = null;
+};
+
+// ----------下面是测试用例------------
+
+// 模拟一个异步请求函数
+function createRequest(delay) {
+  return () =>
+    new Promise((resolve) => {
+      setTimeout(() => {
+        resolve("done");
+      }, delay);
+    });
+}
+
+const cancelPromise = new CancelablePromise();
+// 前四个请求将被自动取消
+for (let i = 0; i < 5; i++) {
+  cancelPromise
+    .request(createRequest(1000))
+    .then((res) => console.log(res)) // 最后一个 done
+    .catch((err) => console.error(err)); // 前四个 error: 取消重复请求
+}
 ```
