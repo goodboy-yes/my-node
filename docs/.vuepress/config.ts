@@ -45,6 +45,7 @@ export default defineUserConfig<DefaultThemeOptions>({
           "/js/bit-operation",
           "/js/regular-expression",
           "/js/file-operation",
+          "/js/cross-domain",
           "/js/code-style",
           "/js/performance-optimization",
           "/js/design-pattern",

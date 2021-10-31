@@ -123,6 +123,18 @@ const copyToClipboard = (text) => navigator.clipboard.writeText(text);
 copyToClipboard("Hello World");
 ```
 
+### 检查一个元素是否被聚焦
+
+```javascript
+const hasFocus = (ele) => ele === document.activeElement;
+```
+
+### 获取选中文本
+
+```javascript
+const getSelectedText = () => window.getSelection().toString();
+```
+
 ## 数值操作
 
 ### 求两个整数之间的随机数
