@@ -20,6 +20,12 @@ date-fns 提供了最全面、最简单且一致的工具集，用于在浏览�
 
 FileSaver.js 在没有原生支持 saveAs() 的浏览器上实现了 saveAs() 接口。是文件下载的标杆项目。
 
+## 表格解析和生成
+
+### [sheetjs ](https://github.com/SheetJS/sheetjs)
+
+SheetJS 是用于多种电子表格格式的解析器和编写器。通过官方规范、相关文档以及测试文件实现简洁的 JS 方法。SheetJS 强调解析和编写的稳健，其跨格式的特点和统一的 JS 规范兼容，并且 ES3/ES5 浏览器向后兼容 IE6。
+
 ## 更多 NPM 包
 
 > [让我告诉你一些强无敌的 NPM 软件包](https://juejin.cn/post/6950584088462163982)
@@ -42,7 +48,7 @@ FileSaver.js 在没有原生支持 saveAs() 的浏览器上实现了 saveAs() �
 
 - 另一种是通过 `patch-package` 记录 node_modules 更改记录，生成 patches 目录，然后通过项目的 post-install 脚本在团队中同步这个更改，实现第三方库的临时 patch，当然这也适合其他第三方库问题的临时修复。
 
-  ```
+  ```javascript
   // 1. 安装
   npm i patch-package
   //of

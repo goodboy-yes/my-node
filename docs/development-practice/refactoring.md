@@ -199,6 +199,25 @@ const statusColors = {
 };
 
 const getColorByStatus = (status) => statusColors[status] || "blue";
+
+👍
+//Map 则更为强大，对象的键只能是一个字符串或符号，但 Map 的键可以是对象或更多，可以作为条件联合判断。
+const actions = new Map([
+  [/^sign_[1-3]$/, () => 'A'],
+  [/^sign_5$/, () => 'B'],
+  //...
+]);
+
+const action = [...actions].filter(([key, value]) => key.test(`sign_${status}`));
+action.forEach(([key, value]) => value());
 ```
 
----
+## 其他
+
+#### 移除重复代码
+
+重复代码在 Bad Smell 中排在第一位，所以，竭尽你的全力去避免重复代码。因为它意味着当你需要修改一些逻辑时会有多个地方需要修改。
+
+#### 写好业务注释
+
+优秀的代码命名无需注释，代码即注释，加上注释就会冗余。这时某个业务的逻辑就离不开准确的注释，这样可以帮助我们更加理解业务的详细逻辑。需要要求的是代码改动注释也要随之更新

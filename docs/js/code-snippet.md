@@ -470,12 +470,13 @@ function Promise(callback) {
   };
   // 捕获成功和失败，扔到成功和失败数组
   this.then = function (succesFn, errorFn) {
-    this.fulfilledCallback.push(succesFn);
-    this.rejectedCallback.push(errorFn);
+    succesFn && this.fulfilledCallback.push(succesFn);
+    errorFn && this.rejectedCallback.push(errorFn);
+    return this;
   };
   // 捕获异常，直接扔到异常数组中
   this.catch = (errorFn) => {
-    this.rejectedCallback.push(errorFn);
+    errorFn && this.rejectedCallback.push(errorFn);
   };
   // 默认需要执行一次resolve和reject
   callback(this.resolve, this.reject);
@@ -580,7 +581,7 @@ let obj = {
     child: true,
   },
 };
-// 方法一：（面试官不想要）
+// 方法一：
 JSON.parse(JSON.stringify(obj));
 // 方法二：
 function deepClone(obj) {
@@ -594,5 +595,74 @@ function deepClone(obj) {
     result = obj;
   }
   return result;
+}
+```
+
+### 简易模板引擎
+
+```javascript
+const template = "嗨，{{ info.name.value }}您好，今天是星期 {{ day.value }}";
+
+const data = {
+  info: {
+    name: {
+      value: "张三",
+    },
+  },
+  day: {
+    value: "三",
+  },
+};
+
+function render(template, data) {
+  return template.replace(/{{\s+?([\w.]+)\s+?}}/g, function ($0, $1) {
+    return eval(`data.${$1}`);
+  });
+}
+
+const result = render(template, data);
+// 嗨，张三您好，今天是星期三
+console.log(result);
+```
+
+### 防抖动与函数截流
+
+- **函数防抖**（debounce）：其概念其实是从机械开关和继电器的“去弹跳”（debounce）衍生出来的，基本思路就是把多个信号合并为一个信号。比如一个 `input` 每当输入结束后 0.5 秒执行搜索事件，这就是个很经典的防抖需求。
+- **函数节流**（throttle）：节流的概念可以想象一下水坝，你建了水坝在河道中，不能让水流动不了，你只能让水流慢些。换言之，你不能让用户的方法都不执行。如果这样干，就是 debounce 了。为了让用户的方法在某个时间段内只执行一次，我们需要保存上次执行的时间点与定时器。
+
+```javascript
+//防抖,在事件被触发n秒后再执行回调，如果在这n秒内又被触发，则重新计时
+function debounce(func, delay) {
+  let timeOut;
+  return function () {
+    let args = arguments;
+    if (timeOut) {
+      clearTimeOut(timeOut);
+    }
+    timeOut = setTimeOut(() => {
+      func.apply(this, args);
+    }, delay);
+  };
+}
+window.onscroll = debounce(() => {
+  console.log("debounce");
+}, 1000);
+
+//截流,持续触发事件时，每隔一段时间，只执行一次函数。
+// 函数节流会用在比input, keyup更频繁触发的事件中，如resize, touchmove, mousemove, scroll。
+//`throttle` 会强制函数以固定的速率执行。因此这个方法比较适合应用于动画相关的场景。
+function throttle(func, delay) {
+  let timer;
+  return function () {
+    let args = arguments;
+    if (timer) {
+      return;
+    }
+    timer = setTimeOut(() => {
+      clearTimeOut(timer);
+      timer = null;
+      func.apply(this, args);
+    }, delay);
+  };
 }
 ```
