@@ -1,8 +1,22 @@
 # 重构
 
-## 最佳实践
+## 编码风格
 
 ### 命名
+
+#### 函数命名
+
+```javascript
+// 对于返回 boolean 的函数以 should/is/can/has 开头
+function shouldShowFriendsList() {...}
+function isEmpty() {...}
+function canCreateDocuments() {...}
+function hasLicense() {...}
+
+// 动词开头
+function sendEmailToUser(user) {
+}
+```
 
 #### 使用有意义的变量代替数组下标
 
@@ -31,6 +45,22 @@ setTimeout(blastOff, 86400000);
 👍
 const MILLISECONDS_PER_DAY = 60 * 60 * 24 * 1000; //86400000;
 setTimeout(blastOff, MILLISECONDS_PER_DAY);
+```
+
+#### 特定的变量
+
+```javascript
+👎
+if (value.length < 8) { // 看不出为什么要小于8
+ ....
+}
+
+👍
+const MAX_INPUT_LENGTH = 8;
+if (value.length < MAX_INPUT_LENGTH) { // 一目了然，不能超过最大输入长度
+ ....
+}
+
 ```
 
 ### 函数
@@ -210,6 +240,38 @@ const actions = new Map([
 
 const action = [...actions].filter(([key, value]) => key.test(`sign_${status}`));
 action.forEach(([key, value]) => value());
+```
+
+#### 传参说明
+
+```javascript
+👎
+page.getSVG(api, true, false); // true和false无意义
+
+👍
+page.getSVG({
+ imageApi: api,
+ includePageBackground: true, // 一目了然
+ compress: false,
+})
+```
+
+### 其他
+
+#### 赋值变量兜底
+
+```javascript
+👎
+let lastName = fullName[1];
+if(lastName.length > MIN_NAME_LENGTH) { // fullName[1]可能为undefined
+}
+
+👍
+let lastName = fullName[1] || 0;
+// lastName的变量类型还是number，number原型链上的特性都能使用，不会报错。不会变成undefined。
+if(lastName.length > MIN_NAME_LENGTH) {
+    ....
+}
 ```
 
 ## 其他
