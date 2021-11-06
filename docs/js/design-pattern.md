@@ -276,4 +276,110 @@ let sandboxModel = (function () {
 })();
 ```
 
+## 代理模式
+
+代理模式（Proxy Pattern）是为一个对象提供一个代用品或占位符，以便控制对它的访问
+
+**缓存代理**
+缓存代理可以为一些开销大的运算结果提供暂时的存储，在下次运算时，如果传递进来的参数跟之前一致，则可以直接返回前面存储的运算结果
+
+```javascript
+// 无代理
+var muti = function () {
+  console.log("开始计算乘积");
+  var a = 1;
+  for (var i = 0, l = arguments.length; i < l; i++) {
+    a = a * arguments[i];
+  }
+  return a;
+};
+
+// 缓存代理
+var proxyMult = (function () {
+  var cache = {};
+  return function () {
+    var args = Array.prototype.join.call(arguments, ",");
+    if (args in cache) {
+      return cache[args];
+    }
+    return (cache[args] = mult.apply(this, arguments));
+  };
+})();
+
+proxyMult(1, 2, 3, 4); // 输出:24
+proxyMult(1, 2, 3, 4); // 输出:24
+```
+
+**虚拟代理**
+
+例如图片预加载功能
+未使用代理模式，MyImage 对象除了负责给 img 节点设置 src 外，还要负责预加载图片，违反了面向对象设计的原则——单一职责原则
+
+```javascript
+let MyImage = (function () {
+  let imgNode = document.createElement("img");
+  document.body.appendChild(imgNode);
+  // 创建一个Image对象，用于加载需要设置的图片
+  let img = new Image();
+
+  img.onload = function () {
+    // 监听到图片加载完成后，设置src为加载完成后的图片
+    imgNode.src = img.src;
+  };
+
+  return {
+    setSrc: function (src) {
+      // 设置图片的时候，设置为默认的loading图
+      imgNode.src =
+        "https://img.zcool.cn/community/01deed576019060000018c1bd2352d.gif";
+      // 把真正需要设置的图片传给Image对象的src属性
+      img.src = src;
+    },
+  };
+})();
+
+MyImage.setSrc("https://xxx.jpg");
+```
+
+使用代理模式
+
+```javascript
+// 图片本地对象，负责往页面中创建一个img标签，并且提供一个对外的setSrc接口
+let myImage = (function () {
+  let imgNode = document.createElement("img");
+  document.body.appendChild(imgNode);
+
+  return {
+    //setSrc接口，外界调用这个接口，便可以给该img标签设置src属性
+    setSrc: function (src) {
+      imgNode.src = src;
+    },
+  };
+})();
+// 代理对象，负责图片预加载功能
+let proxyImage = (function () {
+  // 创建一个Image对象，用于加载需要设置的图片
+  let img = new Image();
+  img.onload = function () {
+    // 监听到图片加载完成后，给被代理的图片本地对象设置src为加载完成后的图片
+    myImage.setSrc(this.src);
+  };
+  return {
+    setSrc: function (src) {
+      // 设置图片时，在图片未被真正加载好时，以这张图作为loading，提示用户图片正在加载
+      myImage.setSrc(
+        "https://img.zcool.cn/community/01deed576019060000018c1bd2352d.gif"
+      );
+      img.src = src;
+    },
+  };
+})();
+
+proxyImage.setSrc("https://xxx.jpg");
+```
+
+代理对象负责在图片未加载完成之前，引入预加载的 loading 图，负责了图片预加载的功能
+
+并且上述代理模式可以发现，代理和本体接口的一致性，如果有一天不需要预加载，那么就不需要代理对象，可以选择直接请求本体。其中关键是代理对象和本体都对外提供了 setSrc 方法
+
 > [参考链接](https://www.zhihu.com/people/jacobwuzdong/posts)

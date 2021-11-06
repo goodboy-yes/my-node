@@ -54,7 +54,7 @@ export default defineUserConfig<DefaultThemeOptions>({
       },
       {
         text: "TypeScript",
-        children: ["/ts/basic-knowledge"],
+        children: ["/ts/basic-knowledge","/ts/to-use"],
       },
       {
         text: "CSS",

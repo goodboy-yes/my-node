@@ -45,51 +45,6 @@ TypeScript 是完全兼容 JavaScript 的，它不会修改 JavaScript 运行时
 - 「名字空间」：名字只在该区域内有效，其他区域可重复使用该名字而不冲突
 - 「元组」：元组合并了不同类型的对象，相当于一个可以装不同类型数据的数组
 
-## Hello TypeScript
-
-```bash
-npm install -g typescript
-```
-
-以上命令会在全局环境下安装 tsc 命令，安装完成之后，我们就可以在任何地方执行 tsc 命令了。
-
-我们约定使用 TypeScript 编写的文件以 `.ts` 为后缀，用 TypeScript 编写 React 时，以 `.tsx`为后缀。
-
-```ts
-//hello.ts
-function sayHello(person: string) {
-  return "Hello, " + person;
-}
-
-let user = "Tom";
-console.log(sayHello(user));
-```
-
-然后执行
-
-```bash
-tsc hello.ts
-```
-
-这时候会生成一个编译好的文件 `hello.js`：
-
-```js
-//hello.js
-function sayHello(person) {
-  return "Hello, " + person;
-}
-var user = "Tom";
-console.log(sayHello(user));
-```
-
-在 TypeScript 中，我们使用 ':' 指定变量的类型，':' 的前后有没有空格都可以。
-
-上述例子中，我们用 ':' 指定 person 参数类型为 string。但是编译为 js 之后，并没有什么检查的代码被插入进来。这是因为 **TypeScript 只会在编译时对类型进行静态检查，如果发现有错误，编译的时候就会报错**。而在运行时，与普通的 JavaScript 文件一样，不会对类型进行检查。
-
-**TypeScript 编译的时候即使报错了，还是会生成编译结果**，我们仍然可以使用这个编译之后的文件。
-
-如果要在报错的时候终止 js 文件的生成，可以在 `tsconfig.json` 中配置 `noEmitOnError` 即可
-
 ## 数据类型
 
 ### void
@@ -1616,6 +1571,98 @@ function getUserInfo(user: ILogInUserProps | IUnLoginUserProps): string {
   return "name" in user ? user.name : user.from;
 }
 ```
+
+## 命名空间
+
+在 JavaScript 使用命名空间时， 这有一个常用的、方便的语法：
+
+```javascript
+(function (something) {
+  something.foo = 123;
+})(something || (something = {}));
+
+console.log(something);
+// { foo: 123 }
+
+(function (something) {
+  something.bar = 456;
+})(something || (something = {}));
+
+console.log(something); // { foo: 123, bar: 456 }
+```
+
+在确保创建的变量不会泄漏至全局命名空间时，这种方式在 JavaScript 中很常见。当基于文件模块使用时，你无须担心这点，但是该模式仍然适用于一组函数的逻辑分组。因此 TypeScript 提供了 namespace 关键字来描述这种分组，如下所示。
+
+```javascript
+namespace Utility {
+  export function log(msg) {
+    console.log(msg);
+  }
+  export function error(msg) {
+    console.log(msg);
+  }
+}
+
+// usage
+Utility.log('Call me');
+Utility.error('maybe');
+```
+
+namespace 关键字编译后的 JavaScript 代码，与我们早些时候看到的 JavaScript 代码一样。
+
+```javascript
+(function (Utility) {
+// 添加属性至 Utility
+})(Utility || Utility = {});
+```
+
+命名空间支持嵌套
+
+## 声明空间
+
+在 TypeScript 里存在两种声明空间：类型声明空间与变量声明空间
+
+### 类型声明空间
+
+类型声明空间包含用来当做类型注解的内容，例如下面的类型声明：
+
+```javascript
+class Foo {}
+interface Bar {}
+type Bas = {};
+
+let foo: Foo;
+let bar: Bar;
+let bas: Bas;
+```
+
+注意，尽管你定义了 interface Bar，却并不能够把它作为一个变量来使用，因为它没有定义在变量声明空间中。
+
+```javascript
+interface Bar {}
+const bar = Bar; // Error: "cannot find name 'Bar'"
+```
+
+### 变量声明空间
+
+变量声明空间包含可用作变量的内容，在上文中 Class Foo 提供了一个类型 Foo 到类型声明空间，此外它同样提供了一个变量 Foo 到变量声明空间
+
+```javascript
+class Foo {}
+const someVar = Foo;
+const someOtherVar = 123;
+```
+
+> 我们并不能把一些如 interface 定义的内容当作变量使用。
+
+一些用 const 声明的变量，也只能在变量声明空间使用，不能用作类型注解。
+
+```javascript
+const foo = 123;
+let bar: foo; // ERROR: "cannot find name 'foo'"
+```
+
+提示 ERROR: "cannot find name 'foo'" 原因是，名称 foo 没有定义在类型声明空间里。
 
 > 参考链接：
 >
