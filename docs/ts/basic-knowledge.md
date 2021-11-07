@@ -45,6 +45,12 @@ TypeScript 是完全兼容 JavaScript 的，它不会修改 JavaScript 运行时
 - 「名字空间」：名字只在该区域内有效，其他区域可重复使用该名字而不冲突
 - 「元组」：元组合并了不同类型的对象，相当于一个可以装不同类型数据的数组
 
+### TypeScript = ES 提案 + 类型编程
+
+- 预实现的 **ES 提案**，如 装饰器、 可选链`?.`、空值合并运算符`??`，除了部分极端不稳定的语法（如装饰器）以外，大部分的 TS 实现实际上就是未来的 ES 语法。
+
+- **类型编程**，如 `interface`、`T extends SomeType` 这些都属于类型编程的范畴。这一部分对代码实际的功能层面没有任何影响，即使你一行代码十个 `any`，遇到类型错误就 `@ts-ignore`，也不会影响你代码本身的逻辑。
+
 ## 数据类型
 
 ### void
@@ -994,7 +1000,9 @@ function swap<T, U>(tuple: [T, U]): [U, T] {
 swap([7, "seven"]); // ['seven', 7]
 ```
 
-通常我们将上面例子中 `T` 这样的未赋值形式称为 **类型参数变量** 或者说 **泛型类型**，而将 `Array` 这样已经实例化完毕的称为**实际类型参数**或者是 **参数化类型**。
+通常我们将上面例子中 `T` 这样的未赋值形式称为 **类型参数变量** 或者说 **泛型类型**，而将 `Array<number>` 这样已经实例化完毕的称为**实际类型参数**或者是 **参数化类型**。
+
+> 通常泛型只会使用单个字母。如 T U K V S 等。推荐做法是在项目达到一定复杂度后，使用带有具体意义的泛型变量声明，如 BasicBusinessType 这种形式。
 
 #### 类声明
 
@@ -1215,7 +1223,7 @@ const a = getValue(obj, "a");
 T extends U ? X : Y
 ```
 
-上面的意思就是，如果 T 是 U 的子集，就是类型 X，否则为类型 Y
+上面的意思就是，如果 T 是 U 的子集（U 中的属性在 T 中都有），就是类型 X，否则为类型 Y
 
 ## 类型推论
 
@@ -1663,6 +1671,70 @@ let bar: foo; // ERROR: "cannot find name 'foo'"
 ```
 
 提示 ERROR: "cannot find name 'foo'" 原因是，名称 foo 没有定义在类型声明空间里。
+
+## 分布式条件类型
+
+分布式条件类型实际上不是一种特殊的条件类型，而是其特性之一（所以说条件类型的分布式特性更为准确）。我们直接先上概念： **对于属于裸类型参数的检查类型，条件类型会在实例化时期自动分发到联合类型上。**
+
+```javascript
+type TypeName<T> = T extends string
+  ? "string"
+  : T extends number
+  ? "number"
+  : T extends boolean
+  ? "boolean"
+  : T extends undefined
+  ? "undefined"
+  : T extends Function
+  ? "function"
+  : "object";
+
+// "string" | "function"
+type T1 = TypeName<string | (() => void)>;
+
+// "string" | "object"
+type T2 = TypeName<string | string[]>;
+
+// "object"
+type T3 = TypeName<string[] | number[]>;
+```
+
+在上面的例子里，条件类型的推导结果都是联合类型（T3 实际上也是，只不过因为结果相同所以被合并了），并且其实就是**类型参数被依次进行条件判断后，再使用|组合得来的结果**。
+
+上面的例子中泛型都是裸露着的，属于裸类型参数，让我们来看一下被包裹着的结果
+
+```javascript
+type Naked<T> = T extends boolean ? "Y" : "N";
+type Wrapped<T> = [T] extends [boolean] ? "Y" : "N";
+
+// "N" | "Y"
+type Distributed = Naked<number | boolean>;
+
+// "N"
+type NotDistributed = Wrapped<number | boolean>;
+
+```
+
+其中，Distributed 类型别名，其类型参数`（number | boolean）`会正确的分发，即先分发到 `Naked<number> | Naked<boolean>`，再进行判断，所以结果是"N" | "Y"。
+
+而 NotDistributed 类型别名，第一眼看上去感觉 TS 应该会自动按数组进行分发，结果应该也是 "N" | "Y" ？但实际上，它的类型参数`（number | boolean）`不会有分发流程，直接进行`[number | boolean] extends [boolean]`的判断，所以结果是"N"。
+
+- 裸类型参数，没有额外被[]包裹过的，就像被数组包裹后就不能再被称为裸类型参数。
+
+- 实例化，其实就是条件类型的判断过程，条件类型需要在收集到足够的推断信息之后才能进行这个过程。在这里两个例子的实例化过程实际上是不同的
+
+- 分发到联合类型：
+
+  ```javascript
+  ( A | B | C ) extends T ? X : Y
+  // 相当于
+  (A extends T ? X : Y) | (B extends T ? X : Y) | (B extends T ? X : Y)
+
+  // 使用[]包裹后，不会进行额外的分发逻辑。
+  [A | B | C] extends [T] ? X : Y
+  ```
+
+  没有被 [] 额外包装的联合类型参数，在条件类型进行判定时会将联合类型分发，分别进行判断。
 
 > 参考链接：
 >
