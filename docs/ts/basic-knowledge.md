@@ -1736,8 +1736,45 @@ type NotDistributed = Wrapped<number | boolean>;
 
   没有被 [] 额外包装的联合类型参数，在条件类型进行判定时会将联合类型分发，分别进行判断。
 
+## 概念对比
+
+### const 和 readonly 的区别
+
+- const 用于变量，readonly 用于属性
+- const 在运行时检查，readonly 在编译时检查
+- 使用 const 变量保存的数组，可以使用 push，pop 等方法。但是如果使用 `ReadonlyArray<number>`声明的数组- 不能使用 push，pop 等方法。
+
+### 同名的 interface 或 class
+
+- interface 会合并
+- class 不可以合并
+
+### type 和 interface 的区别
+
+- 类型别名可以为任何类型引入名称，interface 只能用于定义对象类型，而 type 的声明方式除了对象之外还可以定义交叉、联合、原始类型等，类型声明的方式适用范围显然更加广泛
+- 类型别名不支持继承
+- 类型别名不会创建一个真正的名字
+- 类型别名无法被实现(implements)，而接口可以被派生类实现
+- 类型别名重名时编译器会抛出错误，接口重名时会产生合并
+
+### implements 与 extends 的区别
+
+- extends, 子类会继承父类的所有属性和方法。
+- implements，使用 implements 关键字的类将需要实现需要实现的类的所有属性和方法。
+
+### never, void 的区别
+
+- never，never 表示永远不存在的类型。比如一个函数总是抛出错误，而没有返回值。或者一个函数内部有死循环，永远不会有返回值。函数的返回值就是 never 类型。
+- void, 没有显示的返回值的函数返回值为 void 类型。如果一个变量为 void 类型，只能赋予 undefined 或者 null。
+
+### unknown, any 的区别
+
+与 any 类型不同的是。unknown 类型可以接受任意类型赋值，但是 unknown 类型赋值给其他类型前，必须被断言
+
 > 参考链接：
 >
 > [TypeScript github](https://github.com/Microsoft/TypeScript)
 >
 > [TypeScript 入门教程（非官方）](https://ts.xcatliu.com/)
+>
+> [面试题 TypeScript](https://juejin.cn/post/6988763249982308382#heading-22)

@@ -431,6 +431,30 @@ for (let i = 0; i < 5; i++) {
 }
 ```
 
+**还有请求超时处理**
+
+```javascript
+// 用于超时一个Promise的工具
+function timeoutPromise(delay) {
+  return new Promise(function (resolve, reject) {
+    setTimeout(function () {
+      reject("Timeout!");
+    }, delay);
+  });
+}
+
+// 设置foo()超时
+Promise.race([foo(), timeoutPromise(3000)]).then(
+  function () {
+    // foo(..)及时完成！
+  },
+  function (err) {
+    // 或者foo()被拒绝，或者只是没能按时完成
+    // 查看err来了解是哪种情况
+  }
+);
+```
+
 ### 手写 Promise
 
 ```javascript

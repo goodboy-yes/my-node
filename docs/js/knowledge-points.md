@@ -94,6 +94,20 @@ p2.name; // z d
 document.designMode = "on";
 ```
 
+### 异常捕获
+
+- 可疑区域增加 try...catch
+- 全局监控 JS 异常： window.onerror
+- 全局监控静态资源异常： window.addEventListener
+- 全局捕获没有 catch 的 promise 异常：unhandledrejection
+- iframe 异常：window.error
+- VUE errorHandler 和 React componentDidCatch
+- 监控网页崩溃：window 对象的 load 和 beforeunload
+- Script Error 跨域 crossOrigin 解决
+
+> 参考链接
+> [谈谈前端异常捕获](https://www.cnblogs.com/chenwenhao/p/12184733.html)
+
 ## 机制
 
 ### Slice 无参调用
