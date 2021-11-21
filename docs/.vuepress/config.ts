@@ -41,6 +41,7 @@ export default defineUserConfig<DefaultThemeOptions>({
         text: "JS",
         children: [
           "/js/knowledge-points",
+          "/js/handwriting-knowledge",
           "/js/code-snippet",
           "/js/bit-operation",
           "/js/regular-expression",
@@ -54,7 +55,7 @@ export default defineUserConfig<DefaultThemeOptions>({
       },
       {
         text: "TypeScript",
-        children: ["/ts/basic-knowledge","/ts/to-use"],
+        children: ["/ts/basic-knowledge", "/ts/to-use"],
       },
       {
         text: "CSS",
@@ -73,6 +74,10 @@ export default defineUserConfig<DefaultThemeOptions>({
       {
         text: "Vue3",
         children: ["/vue3/difference-from-vue2", "/vue3/vite"],
+      },
+      {
+        text: "Nodejs",
+        link: "/node-js",
       },
       {
         text: "Git",

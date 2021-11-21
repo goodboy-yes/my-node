@@ -455,100 +455,6 @@ Promise.race([foo(), timeoutPromise(3000)]).then(
 );
 ```
 
-### 手写 Promise
-
-```javascript
-function Promise(callback) {
-  const pending = "pending";
-  const fulfilled = "fulfilled";
-  const rejected = "rejected";
-  // 当前状态
-  this.state = pending;
-  // 当前值
-  this.value = null;
-  // 失败原因
-  this.reason = null;
-  // 成功和失败数组对象
-  this.fulfilledCallback = [];
-  this.rejectedCallback = [];
-
-  // 成功处理
-  this.resolve = (data) => {
-    setTimeout(() => {
-      if (this.state == pending) {
-        this.state = fulfilled;
-        this.value = data;
-        this.fulfilledCallback.map((fn) => fn(this.value));
-      }
-    });
-  };
-  // 失败处理
-  this.reject = (reason) => {
-    setTimeout(() => {
-      if (this.state == pending) {
-        this.state = rejected;
-        this.reason = reason;
-        this.rejectedCallback.map((fn) => fn(this.reason));
-      }
-    });
-  };
-  // 捕获成功和失败，扔到成功和失败数组
-  this.then = function (succesFn, errorFn) {
-    succesFn && this.fulfilledCallback.push(succesFn);
-    errorFn && this.rejectedCallback.push(errorFn);
-    return this;
-  };
-  // 捕获异常，直接扔到异常数组中
-  this.catch = (errorFn) => {
-    errorFn && this.rejectedCallback.push(errorFn);
-  };
-  // 默认需要执行一次resolve和reject
-  callback(this.resolve, this.reject);
-}
-
-// 验证结果
-new Promise((resolve, reject) => {
-  setTimeout(() => {
-    resolve(10);
-  }, 1000);
-}).then(
-  (data) => {
-    console.log(data);
-  },
-  (error) => {
-    console.log(error);
-  }
-);
-```
-
-### compose 组合函数实现
-
-```javascript
-// 聚合函数
-export default function compose(...funcs) {
-  // 如果是空，直接返回空函数并接受一个参数
-  if (funcs.length === 0) {
-    return arg => arg
-  }
-  // 如果有一个，直接执行并返回结果
-  if (funcs.length === 1) {
-    return funcs[0]
-  }
-  // 如果对reduce不了解，可以先去看下技术文章
-  return funcs.reduce((a, b) => (...args) => a(b(...args)))
-}
-
-// Demo:
-const add = num => num  + 10
-const multiply = num => num * 2
-const foo = compose(multiply, add)
-foo(5) => 30
-```
-
-- compose 是一个聚合函数
-- compose 执行后返回一个函数（所以这就是为什么当 func.length==0 的时候，要 return 一个箭头函数）
-- reduce 始终返回一个箭头函数，后一个函数先执行并把结果作为前一个函数的参数，依次进行
-
 ### 数组转换为 Tree
 
 ```javascript
@@ -689,4 +595,84 @@ function throttle(func, delay) {
     }, delay);
   };
 }
+```
+
+## 实现柯里化函数
+
+```javascript
+function currying(fn, ...args1) {
+  // 获取fn参数有几个
+  const length = fn.length;
+  let allArgs = [...args1];
+  const res = (...arg2) => {
+    allArgs = [...allArgs, ...arg2];
+    // 长度相等就返回执行结果
+    if (allArgs.length === length) {
+      return fn(...allArgs);
+    } else {
+      // 不相等继续返回函数
+      return res;
+    }
+  };
+  return res;
+}
+
+// 测试：
+const add = (a, b, c) => a + b + c;
+const a = currying(add, 1);
+console.log(a(2, 3));
+```
+
+## call
+
+```javascript
+Function.prototype.sx_call = function (obj, ...args) {
+  obj = obj || window;
+
+  // Symbol是唯一的，防止重名key
+  const fn = Symbol();
+  obj[fn] = this;
+
+  // 执行，返回执行值
+  return obj[fn](...args);
+};
+
+const testobj = {
+  name: "林三心",
+  testFn(age) {
+    console.log(`${this.name}${age}岁了`);
+  },
+};
+const testobj2 = {
+  name: "sunshine_lin",
+};
+
+testobj.testFn.sx_call(testobj2, 22); // sunshine_lin22岁了
+```
+
+## apply
+
+```javascript
+Function.prototype.sx_apply = function (obj, args) {
+  obj = obj || window;
+
+  // Symbol是唯一的，防止重名key
+  const fn = Symbol();
+  obj[fn] = this;
+
+  // 执行，返回执行值
+  return obj[fn](...args);
+};
+
+const testobj = {
+  name: "林三心",
+  testFn(age) {
+    console.log(`${this.name}${age}岁了`);
+  },
+};
+const testobj2 = {
+  name: "sunshine_lin",
+};
+
+testobj.testFn.sx_apply(testobj2, [22]); // sunshine_lin22岁了
 ```
