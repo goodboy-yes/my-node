@@ -155,6 +155,7 @@ TypeScript 将会检查以下内容
 ### 重写类型的动态查找
 
 可以通过 declare module 'somePath' 声明一个全局模块的方式，来解决查找模块路径的问题。
+
 ```javascript
 // global.d.ts
 declare module 'foo' {
@@ -162,9 +163,116 @@ declare module 'foo' {
   export var bar: number;
 }
 ```
+
 ```javascript
 // anyOtherTsFileInYourProject.ts
-import * as foo from 'foo';
+import * as foo from "foo";
 // TypeScript 将假设（在没有做其他查找的情况下）
 // foo 是 { bar: number }
+```
+
+> 在 d.ts 中，使用 declare 与 declare global 两个作用是相等的。那么什么时候使用 declare, 又什么时候使用 declare global？
+>
+> 在模块文件中定义 declare，如果想要用作全局就可以使用 declare global 完成该需求。
+
+## 工具类型
+
+### Readonly
+
+Readonly 可以将类型转换为只读对象，使用方式是 `Readonly<T>`。
+
+```javascript
+interface Person {
+  name: string;
+}
+type Person2 = Readonly<Person>;
+
+const a: Person2 = {
+  name: "wangly19",
+};
+
+const b: Person = {
+  name: "wangly19",
+};
+
+a.name = "wangly19 new"; // 报错
+b.name = "wangly19 new";
+```
+
+### Record
+
+Record 能够快速创建对象类型。它的使用方式是`Record<K, V>`，能够快速的为 object 创建统一的 key 和 value 类型。
+
+```javascript
+const test: Record<string, string> = {
+  name: 1, //报错：Type 'number' is not assignable to type 'string'.
+};
+```
+
+### Pick & Omit
+
+Pick：主要作用是从一组属性中拿出某个属性，并将其返回，使用方法是`Pick<P, K>`
+
+```javascript
+interface Person {
+  name: string
+  age: number
+}
+type test = Pick<Person, 'age'> // type test = {age: number;}
+```
+
+Omit：主要作用是从一组属性中排除某个属性，并将排除属性后的结果返回。使用方法是`Omit<P, K>`，与 Pick 的结果是相反的，如果说 Pick 是取出，那么 Omit 则是过滤的效果
+
+```javascript
+interface Person {
+  name: string
+  age: number
+}
+type test = Omit<Person, 'age'> // type test = {name: string;}
+```
+
+### Exclude & Extract
+
+Exclude：从一个联合类型中排除掉属于另一个联合类型的子集，使用形式是`Exclude<T, S>`，如果 T 中的属性在 S 不存在那么就会返回。
+
+```javascript
+interface A {
+    show: boolean,
+    hidden: boolean,
+    status: string
+}
+
+interface B {
+    show: boolean,
+    name: string
+}
+type outPut = Exclude<keyof A, keyof B> // type outPut = "hidden" | "status"
+```
+
+Extract：跟 Exclude 相反，从一个联合类型中取出属于另一个联合类型的子集
+
+```javascript
+interface A {
+    show: boolean,
+    hidden: boolean,
+    status: string
+}
+
+interface B {
+    show: boolean,
+    name: string
+}
+type outPut = Extract<keyof A, keyof B>// type outPut = "show"
+```
+
+### Partial
+
+Partial 是一个将类型转为可选类型的工具，对于不明确的类型来说，需要将所有的属性转化为可选的?.形式，转换成为可选的属性类型。
+
+```javascript
+interface Person {
+  name: string
+  age: number
+}
+type test = Partial<Person> // {name?: string,age?: number}
 ```

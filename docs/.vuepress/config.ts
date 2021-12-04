@@ -69,7 +69,7 @@ export default defineUserConfig<DefaultThemeOptions>({
       },
       {
         text: "Vue2",
-        children: ["/vue2/knowledge-points"],
+        children: ["/vue2/knowledge-points", "/vue2/keep-alive"],
       },
       {
         text: "Vue3",
