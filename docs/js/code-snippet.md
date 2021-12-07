@@ -86,6 +86,31 @@ const goToTop = () => window.scrollTo(0, 0);
 goToTop();
 ```
 
+### 滑滚动页面到顶部
+
+PC 端滚动的根元素是 `document.documentElement`,
+移动端滚动的的根元素是 `document.body`,
+有一个更好的属性 `document.scrollingElement` 能自己识别文档的滚动元素， 其在 PC 端等于 `document.documentElement`, 其在移动端等于 `document.body`
+
+```javascript
+// smooth 选项在Safari上支持不好
+function scrollToTop() {
+  window.scrollTo({
+    left: 0,
+    top: 0,
+    behavior: "smooth",
+  });
+}
+
+function scrollToTop() {
+  let scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+  if (scrollTop > 0) {
+    window.requestAnimationFrame(scrollToTop);
+    window.scrollTo(0, scrollTop - scrollTop / 8);
+  }
+}
+```
+
 ### 阻止点击默认行为
 
 `preventDefault()`阻止事件的默认行为但不支持 IE，IE 中使用 `returnValue` 阻止事件默认行为
@@ -455,6 +480,32 @@ Promise.race([foo(), timeoutPromise(3000)]).then(
 );
 ```
 
+### Promise 顺序执行
+
+支持初始化参数和结果作为参数传递
+
+```javascript
+function runPromises(promiseCreators, initData) {
+  return promiseCreators.reduce(
+    (promise, next) => promise.then((data) => next(data)),
+    Promise.resolve(initData)
+  );
+}
+
+var promise1 = function (data = 0) {
+  return new Promise((resolve) => {
+    resolve(data + 1000);
+  });
+};
+var promise2 = function (data) {
+  return new Promise((resolve) => {
+    resolve(data - 500);
+  });
+};
+
+runPromises([promise1, promise2], 1).then((res) => console.log(res));
+```
+
 ### 数组转换为 Tree
 
 ```javascript
@@ -597,7 +648,7 @@ function throttle(func, delay) {
 }
 ```
 
-## 实现柯里化函数
+### 实现柯里化函数
 
 ```javascript
 function currying(fn, ...args1) {
@@ -623,7 +674,7 @@ const a = currying(add, 1);
 console.log(a(2, 3));
 ```
 
-## call
+### call
 
 ```javascript
 Function.prototype.sx_call = function (obj, ...args) {
@@ -650,7 +701,7 @@ const testobj2 = {
 testobj.testFn.sx_call(testobj2, 22); // sunshine_lin22岁了
 ```
 
-## apply
+### apply
 
 ```javascript
 Function.prototype.sx_apply = function (obj, args) {
@@ -675,4 +726,102 @@ const testobj2 = {
 };
 
 testobj.testFn.sx_apply(testobj2, [22]); // sunshine_lin22岁了
+```
+
+### 带图带事件的桌面通知
+
+网页也可以以桌面弹框的形式进行通知
+
+```javascript
+function doNotify(title, options = {}, events = {}) {
+  const notification = new Notification(title, options);
+  for (let event in events) {
+    notification[event] = events[event];
+  }
+}
+
+function notify(title, options = {}, events = {}) {
+  if (!("Notification" in window)) {
+    return console.error("This browser does not support desktop notification");
+  } else if (Notification.permission === "granted") {
+    doNotify(title, options, events);
+  } else if (Notification.permission !== "denied") {
+    Notification.requestPermission().then(function (permission) {
+      if (permission === "granted") {
+        doNotify(title, options, events);
+      }
+    });
+  }
+}
+
+// 示例 tag用来去重消息。
+notify(
+  "中奖提示",
+  {
+    icon: "https://sf1-ttcdn-tos.pstatp.com/img/user-avatar/f1a9f122e925aeef5e4534ff7f706729~300x300.image",
+    body: "恭喜你，掘金签到一等奖",
+    tag: "prize",
+  },
+  {
+    onclick(ev) {
+      console.log(ev);
+      ev.target.close();
+      window.focus();
+    },
+  }
+);
+```
+
+### 基于 atob 和 btoa 的 base64 编码和解码
+
+浏览器内置了 base64 编码和解码的能力
+
+```javascript
+function utf8_to_b64(str) {
+  return window.btoa(unescape(encodeURIComponent(str)));
+}
+
+function b64_to_utf8(str) {
+  return decodeURIComponent(escape(window.atob(str)));
+}
+
+utf8_to_b64("✓ à la mode"); // "4pyTIMOgIGxhIG1vZGU="
+b64_to_utf8("4pyTIMOgIGxhIG1vZGU="); // "✓ à la mode"
+```
+
+### 基于 URL 生成 UUID
+
+```javascript
+function genUUID() {
+  const url = URL.createObjectURL(new Blob([]));
+  // const uuid = url.split("/").pop();
+  const uuid = url.substring(url.lastIndexOf("/") + 1);
+  URL.revokeObjectURL(url);
+  return uuid;
+}
+
+genUUID(); // cd205467-0120-47b0-9444-894736d873c7
+```
+
+### 禁止选择和复制、禁止图片拖拽
+
+```javascript
+["contextmenu", "selectstart", "copy", "dragstart"].forEach(function (ev) {
+  document.addEventListener(ev, function (ev) {
+    ev.preventDefault();
+    ev.returnValue = false;
+  });
+});
+```
+
+或者用 css
+
+```css
+body {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  -khtml-user-select: none;
+  user-select: none;
+}
 ```
