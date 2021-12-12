@@ -76,6 +76,10 @@ export default defineUserConfig<DefaultThemeOptions>({
         children: ["/vue3/difference-from-vue2", "/vue3/vite"],
       },
       {
+        text: "React",
+        link: "/react",
+      },
+      {
         text: "Nodejs",
         link: "/node-js",
       },
