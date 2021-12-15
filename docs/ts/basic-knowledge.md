@@ -196,6 +196,30 @@ if (dog instanceof Dog) {
 
 从以上比较中得出的结论是，**unknown 类型要安全得多，因为它迫使我们执行额外的类型检查来对变量执行操作。**
 
+### never
+
+`never` 是 Bottom Type，即一个不表示任何类型的类型。它是所有类型的子类型，是类型系统的最底层，也就意味着**没有任何类型可以赋给它，除了 `never` 本身。**
+
+在 TypeScript 中，一个必定抛出错误的函数，它的返回值就是 `never`。
+
+**使用场景**
+我们可以其他类型不可能被复制给 never 类型来确保在 if...else 或者 swicth case 语句中，所有可能的(类型)分支都被穷举到。
+
+```javascript
+const strOrNumOrBool: string | number | boolean = false;
+
+if (typeof strOrNumOrBool === "string") {
+  console.log("str!");
+} else if (typeof strOrNumOrBool === "number") {
+  console.log("num!");
+} else {
+  const _exhaustiveCheck: never = strOrNumOrBool;
+  throw new Error(`Unknown input type: ${_exhaustiveCheck}`);
+}
+```
+
+这样会报错：`不能将类型“boolean”分配给类型“never”。ts(2322)`，因为在穷举完所有类型分支后，strOrNumOrBool 的类型当然就也是 never 啦。这样做只是从 TypeScript 类型层面避免了遗漏，一旦你在枚举值中新增了一个成员，就会出现不能赋值给 never 的报错提示。
+
 ### 联合类型
 
 联合类型（Union Types）表示取值可以为多种类型中的一种。
@@ -1767,9 +1791,67 @@ type NotDistributed = Wrapped<number | boolean>;
 - never，never 表示永远不存在的类型。比如一个函数总是抛出错误，而没有返回值。或者一个函数内部有死循环，永远不会有返回值。函数的返回值就是 never 类型。
 - void, 没有显示的返回值的函数返回值为 void 类型。如果一个变量为 void 类型，只能赋予 undefined 或者 null。
 
-### unknown, any 的区别
+### never、any、unknown 的区别
 
-与 any 类型不同的是。unknown 类型可以接受任意类型赋值，但是 unknown 类型赋值给其他类型前，必须被断言
+我们有时当类型报错了，可以先 as 成 `any`，再 as 成想要的类型，就有类型提示了，例如
+
+```javascript
+const foo = {} as any as Function;
+```
+
+为什么要 as 两次？不能直接 as Function？as 实际上只能转换存在父子类型的关系，所以需要先 as 成 `any`，像中介一样强行把原类型和新类型关联起来。
+
+如果要稍微规范一点，应该先 as 成原类型和新类型的父类型，再 as 成新类型，例如
+
+```javascript
+// Deer、Horse的公共父类型
+interface Animal {}
+
+interface Deer extends Animal {
+  deerId: number
+}
+
+interface Horse extends Animal {
+  horseId: number
+}
+
+let deer: Deer = { deerId: 0 }
+
+// 并不能一步到位
+let horse = deer as Horse
+
+// 先提升成共同的父类型，再定位到子类型
+let horse = deer as Animal as Horse
+
+```
+
+后面有了 `unknown`，编译器对于关联不相关的两个类型的提示也变成了先 as 成 `unknown`
+
+**在 TypeScript 的类型系统中，`any` 与 `unknown` 都属于 Top Type**，`any` 类型的变量可以被赋值以任意类型的值，而 `unknown` 则只能接受 `unknown` 与 `any`。二者的出发点其实是一致的，那就是快速表示一个未知/动态的值
+
+使用 `any` 意味着完全放弃了类型检查，而且一个变量被声明为 `any`，那么接下来所有基于其操作派生来的值就都被打上了隐式 `any`（如果没有类型断言或者基于控制流分析的类型收窄）。但 `unknown` 不一样，它就像是类型安全版本的 `any`：因为类型检查仍然存在。
+
+```javascript
+let foo: any;
+foo.bar().baz(); // 不报错
+
+let bar: unknown;
+// 这里是会报错的
+// @ts-expect-error
+bar.baz().foo();
+```
+
+声明为 `unknown` 的变量没法直接读写它，而是必须先指定类型，显式指定、类型守卫、编译器的自动分析都行，比如类型守卫：
+
+```javascript
+function isString(input: unknown): input is string {
+  return typeof input === "string";
+}
+```
+
+既然有 Top Type，那么就应该要有 Bottom Type，**在 TypeScript 中 `never` 就是那个 Bottom Type**。Bottom Type 意味着一个不表示任何类型的类型。你可能觉得，string 已经挺具体了，'linbudu' 这种字面量类型就更具体了，但 `never` 还要更具体。它是所有类型的子类型，是类型系统的最底层，也就意味着**没有任何类型可以赋给它，除了 `never` 本身。**
+
+在 TypeScript 中，一个必定抛出错误的函数，它的返回值就是 `never`。 `void` 和 `never` 的区别就在于，返回 `void` 的函数其内部还是会调用 return 语句，只不过它啥也没返回，而返回 `never` 的函数其内部压根就没有调用 return 语句
 
 > 参考链接：
 >
