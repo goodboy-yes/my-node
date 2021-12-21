@@ -6,7 +6,12 @@ export default defineUserConfig<DefaultThemeOptions>({
   title: "Gkc's notes",
   description: "Record knowledge",
   base: "/my-notes/",
-
+  plugins: [
+    "@vuepress/plugin-search",
+    {
+      maxSuggestions: 10,
+    },
+  ],
   themeConfig: {
     logo: "https://img2.baidu.com/it/u=157071915,2692109510&fm=26&fmt=auto&gp=0.jpg",
     repo: "https://github.com/goodboy-yes/my-node",
