@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="generator" content="VuePress 2.0.0-beta.29">
     <title>React | Gkc's notes</title><meta name="description" content="Record knowledge">
-    <link rel="modulepreload" href="/my-notes/assets/app.eaa0b019.js"><link rel="modulepreload" href="/my-notes/assets/index.html.18b4761e.js"><link rel="modulepreload" href="/my-notes/assets/plugin-vue_export-helper.21dcd24c.js"><link rel="modulepreload" href="/my-notes/assets/index.html.8586e274.js">
+    <link rel="modulepreload" href="/my-notes/assets/app.def96446.js"><link rel="modulepreload" href="/my-notes/assets/index.html.4b3861ef.js"><link rel="modulepreload" href="/my-notes/assets/plugin-vue_export-helper.21dcd24c.js"><link rel="modulepreload" href="/my-notes/assets/index.html.d66ed897.js">
     <link rel="stylesheet" href="/my-notes/assets/style.4b916bd5.css">
   </head>
   <body>
@@ -154,6 +154,6 @@
   <span class="token operator">&lt;</span><span class="token operator">/</span>Fragment<span class="token operator">&gt;</span>
 <span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre><div class="line-numbers"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br></div></div><h3 id="保持组件为纯函数" tabindex="-1"><a class="header-anchor" href="#保持组件为纯函数" aria-hidden="true">#</a> 保持组件为纯函数</h3><p>React 假设编写的每个组件都是纯函数。这意味着在给定相同输入的情况下，React 组件必须始终返回相同的 JSX</p><p>React 提供了一种“严格模式”，在这种模式下，它在开发过程中两次调用每个组件的函数。通过两次调用组件函数，严格模式有助于找到违反纯函数的组件。严格模式在生产中没有任何影响，因此它不会降低用户的应用程序速度。要选择严格模式，可以将根组件包装到<code>&lt;React.StrictMode&gt;</code></p><p><strong>什么时候不需要纯函数？</strong></p><p>更新屏幕、开始动画、改变数据等被称为副作用。它们不是在渲染过程中发生的事情</p><p>在 React 中，副作用通常属于事件处理程序。事件处理程序是 React 在您执行某些操作时运行的函数，例如，当单击按钮时，即使在组件中定义了事件处理程序，它们也不会在渲染期间运行，所以事件处理程序不需要是纯的。</p><p>可以通过在组件中调用<code>useEffect</code>将其附加到 JSX ，这告诉 React 在渲染之后，在允许副作用的情况下稍后执行它。</p><!--]--></div><footer class="page-meta"><!----><div class="meta-item last-updated"><span class="meta-item-label">Last Updated: </span><!----></div><div class="meta-item contributors"><span class="meta-item-label">Contributors: </span><span class="meta-item-info"><!--[--><!--[--><span class="contributor" title="email: gkckx37@163.com">goodboy-yes</span><!----><!--]--><!--]--></span></div></footer><!----><!--[--><!--]--></main><!--]--></div><!----><!--]--></div>
-    <script type="module" src="/my-notes/assets/app.eaa0b019.js" defer></script>
+    <script type="module" src="/my-notes/assets/app.def96446.js" defer></script>
   </body>
 </html>
