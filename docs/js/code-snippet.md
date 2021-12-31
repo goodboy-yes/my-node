@@ -75,7 +75,11 @@ myArray.filter((val) => Boolean(val));
 ```javascript
 myArray.filter(Boolean);
 ```
-
+### 扁平化数组
+```javascript
+let arr = [[1,2,3],[4,5,[6,7]]];
+let newArr = arr.flat(Infinity); //其中使用Infinity作为flat的参数，使得无需知道被扁平化的数组的维度。
+```
 ## DOM 操作
 
 ### 回到顶部
