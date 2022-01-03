@@ -70,6 +70,7 @@ export default defineUserConfig<DefaultThemeOptions>({
           "/css/pseudo-classes-and-elements",
           "/css/aspect-ratio",
           "/css/skill",
+          "/css/compositing-layer",
         ],
       },
       {
