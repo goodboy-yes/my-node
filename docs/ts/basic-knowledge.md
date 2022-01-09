@@ -220,37 +220,6 @@ if (typeof strOrNumOrBool === "string") {
 
 这样会报错：`不能将类型“boolean”分配给类型“never”。ts(2322)`，因为在穷举完所有类型分支后，strOrNumOrBool 的类型当然就也是 never 啦。这样做只是从 TypeScript 类型层面避免了遗漏，一旦你在枚举值中新增了一个成员，就会出现不能赋值给 never 的报错提示。
 
-### 联合类型
-
-联合类型（Union Types）表示取值可以为多种类型中的一种。
-
-```ts
-let myFavoriteNumber: string | number;
-myFavoriteNumber = "seven";
-myFavoriteNumber = 7;
-```
-
-当 TypeScript 不确定一个联合类型的变量到底是哪个类型的时候，我们**只能访问此联合类型的所有类型里共有的属性或方法**：
-
-```ts
-function getLength(something: string | number): number {
-  return something.length;
-}
-
-// index.ts(2,22): error TS2339: Property 'length' does not exist on type 'string | number'.
-//   Property 'length' does not exist on type 'number'.
-```
-
-上例中，`length` 不是 `string` 和 `number` 的共有属性，所以会报错。
-
-访问 `string` 和 `number` 的共有属性是没问题的：
-
-```ts
-function getString(something: string | number): string {
-  return something.toString();
-}
-```
-
 ### 对象的类型—接口
 
 在面向对象语言中，接口（Interfaces）是一个很重要的概念，它是对行为的抽象，而具体如何行动需要由类（classes）去实现（implement）。
@@ -1103,7 +1072,7 @@ class Demo<T extends ChildInterface> {
 
 泛型更高级的使用是索引类型、约束类型
 
-### 索引类型
+### 索引类型 - keyof
 
 `keyof` 是**索引类型查询**的语法， 它会返回后面跟着的类型参数的键值组成的**字面量联合类型**，举个例子：
 
@@ -1135,6 +1104,54 @@ function pick<T extends object, U extends keyof T>(obj: T, keys: U[]): T[U][] {
 // pick(obj, ['a', 'b'])
 ```
 
+> keyof 只能对类型使用，如果想要对值使用，需要先使用 typeof 获取类型。
+
+### 获取值的类型 - typeof
+
+```javascript
+// 获取对象的类型
+const obj = { a: "123", b: 123 };
+type Obj = typeof obj;
+/**
+type Obj = {
+    a: string;
+    b: number;
+}
+*/
+
+// 获取函数的类型
+function fn(a: Obj, b: number) {
+  return true;
+}
+type Fn = typeof fn;
+/**
+type Fn = (a: Obj, b: number) => boolean
+*/
+```
+
+注意对于 enum 需要先进行 typeof 操作获取类型，才能通过 keyof 等类型操作完成正确的类型计算（因为 enum 可以是类型也可以是值，如果不使用 typeof 会当值计算）
+
+```javascript
+enum E1 {
+  A,
+  B,
+  C
+}
+
+type TE1 = keyof E1;
+/**
+拿到的是错误的类型
+type TE1 = "toString" | "toFixed" | "toExponential" | "toPrecision" | "valueOf" | "toLocaleString"
+*/
+
+type TE2 = keyof typeof E1;
+/**
+拿到的是正确的类型
+type TE2 = "A" | "B" | "C"
+*/
+
+```
+
 ### 映射类型
 
 在类型编程中，我们会从一个类型定义（包括但不限于接口、类型别名）映射得到一个新的类型定义。通常会在旧有类型的基础上进行改造，如：
@@ -1148,7 +1165,7 @@ type ClonedA<T> = {
 };
 ```
 
-### 交叉类型
+### 交叉类型 - &
 
 交叉类型 交叉类型需要实现所有的接口方法
 
@@ -1183,7 +1200,7 @@ function extend<T , U>(first: T, second: U) : T & U {
 }
 ```
 
-### 类型别名
+### 类型别名 - type
 
 类型别名会给一个类型起个新名字，类型别名有时和接口很像，但是可以作用于原始值、联合类型、元组以及其它任何你需要手写的类型
 
@@ -1215,7 +1232,7 @@ type Tree<T> = {
 
 两者最大的区别在于，**interface 只能用于定义对象类型，而 type 的声明方式除了对象之外还可以定义交叉、联合、原始类型等，类型声明的方式适用范围显然更加广泛**
 
-### 类型约束
+### 类型约束 - extend
 
 通过关键字 extend 进行约束，不同于在 class 后使用 extends 的继承作用，泛型内使用的主要作用是对泛型加以约束
 
@@ -1548,7 +1565,61 @@ tom.run();
 
 通过给 `getCacheData` 函数添加了一个泛型 ，我们可以更加规范的实现对 `getCacheData` 返回值的约束，这也同时去除掉了代码中的 `any`，是最优的一个解决方案。
 
-## 非空断言操作符 ！
+## 类型操作符
+
+### & - 合并类型对象
+
+```javascript
+type A = { a: number };
+type B = { b: string };
+type C = A & B;
+// C 包含 A 和 B 定义的所有键
+/**
+* C = {
+    a: number;
+    b: string;
+  }
+*/
+const c: C = {
+  a: 1,
+  b: "1",
+};
+```
+
+注意使用 & 时，两个类型的键如果相同，但类型不同，会报错：
+
+### | - 联合类型
+
+联合类型（Union Types）表示取值可以为多种类型中的一种。
+
+```ts
+let myFavoriteNumber: string | number;
+myFavoriteNumber = "seven";
+myFavoriteNumber = 7;
+```
+
+当 TypeScript 不确定一个联合类型的变量到底是哪个类型的时候，我们**只能访问此联合类型的所有类型里共有的属性或方法**：
+
+```ts
+function getLength(something: string | number): number {
+  return something.length;
+}
+
+// index.ts(2,22): error TS2339: Property 'length' does not exist on type 'string | number'.
+//   Property 'length' does not exist on type 'number'.
+```
+
+上例中，`length` 不是 `string` 和 `number` 的共有属性，所以会报错。
+
+访问 `string` 和 `number` 的共有属性是没问题的：
+
+```ts
+function getString(something: string | number): string {
+  return something.toString();
+}
+```
+
+### ！ - 非空断言操作符
 
 ```ts
 let name: string = "huxngxiaoguo";
@@ -1601,6 +1672,46 @@ type UserProps = ILogInUserProps | IUnLoginUserProps;
 
 function getUserInfo(user: ILogInUserProps | IUnLoginUserProps): string {
   return "name" in user ? user.name : user.from;
+}
+```
+
+在对象类型中，可以通过 `[临时类型变量 in 联合类型]` 语法来遍历对象的键，示例如下：
+
+```javascript
+// 下述示例遍历 '1' | '2' | 3' 三个值，然后依次赋值给 K，K 作为一个临时的类型变量可以在后面直接使用
+/**
+下述示例最终的计算结果是：
+type MyType = {
+    1: "1";
+    2: "2";
+    3: "3";
+}
+因为 K 类型变量的值在每次遍历中依次是 '1', '2', '3' 所以每次遍历时对象的键和值分别是 { '1': '1' } { '2': '2' } 和 { '3': '3' }，
+最终结果是这个三个结果取 &
+*/
+type MyType = {
+  // 注意能遍历的类型只有 string、number、symbol，也就是对象键允许的类型
+  [K in '1' | '2' | '3']: K
+}
+```
+
+[in] 常常和 keyof 搭配使用，遍历某一个对象的键，做相应的计算后得到新的类型
+
+```javascript
+type Obj = {
+  a: string;
+  b: number;
+}
+/**
+遍历 Obj 的所有键，然后将所有键对应的值的类型改成 boolean | K，返回结果如下：
+type MyObj = {
+    a: boolean | "a";
+    b: boolean | "b";
+}
+这样我们就实现了给 Obj 的所有值的类型加上 | boolean 的效果
+*/
+type MyObj = {
+  [K in keyof Obj]: boolean | K
 }
 ```
 
