@@ -25,7 +25,7 @@ const re = new RegExp("[abcd]", "gi");
 - `()` 小括号里面的元素结合为一组，可以在后面引用它
 
 - `[]` 匹配字符集中的一个字符，例如`[abc]`表示匹配字符 a 或 b 或 c；[^abc]表示匹配不等于 a 或 b 或 c 的字符；`[a-e]`匹配在 a 到 e 范围内的字符；`[a-b0-9A-Z_]`匹配字母数字和下划线。
-- `|` 或操作，例如(jpg|png)表示匹配字符串 jpg 或字符串 png。
+- `|` 或操作，例如`(jpg|png)`表示匹配字符串 jpg 或字符串 png。注意，用`/good|goodbye/`去匹配'goodbye' 匹配到的是 good，因为分支结构是惰性的，前面的匹配上了，后面的就不再尝试了
 
 - `{}` 表示前面的字符应该出现的次数。`{n}`表示出现 n 次;`{n,}`表示至少出现 n 次；`{n,m}`表示出现 n 次到 m 次。
 
@@ -95,21 +95,170 @@ const re = new RegExp("[abcd]", "gi");
 
 如`/\b([a-z]+) \1\b/ig`匹配重复的单词，`\1` 指定第一个子匹配项，单词边界元字符确保只检测整个单词。否则，诸如 "`is issued`" 或 "`this is`" 之类的词组将不能正确地被此表达式识别。
 
+```javascript
+/*
+    写一个正则支持以下三种格式
+  2016-06-12
+  2016/06/12
+  2016.06-12
+*/
+let regex = /(\d{4})([-/.])\d{2}\2\d{2}/;
+
+var string1 = "2017-06-12";
+var string2 = "2017/06/12";
+var string3 = "2017.06.12";
+var string4 = "2016-06/12";
+
+console.log(regex.test(string1)); // true
+console.log(regex.test(string2)); // true
+console.log(regex.test(string3)); // true
+console.log(regex.test(string4)); // false
+```
+
+- 引用不存在的分组即匹配的就是` \1`,`\2`本身
+- 分组后面如果有量词，分组最终(注意是分组，不是说整体)捕获的数据是最后一次的匹配
+
+  ```javascript
+  '12345'.match(/\d+/) // ["12345", index: 0, input: "12345", groups: undefined]
+  '12345'.match(/(\d)+/) // ["12345", "5", index: 0, input: "12345", groups: undefined]
+
+  /(\d)+ \1/.test('12345 1') // false
+  /(\d)+ \1/.test('12345 5') // true
+  ```
+
+## 非捕获性括号
+
+上面使用的括号都会匹配他们匹配到的数据，以便后续引用，所以也可以称为捕获型分组和捕获型分支。
+
+如果想要括号最原始的功能，但不会引用它，也就是既不会出现在 API 引用里，也不会出现在正则引用里，可以使用**非捕获性括号`（?:p）`**
+
+```javascript
+// 因为是非捕获型分组，所以使用match方法时，"ab"不会出现在数组的1位置了
+let reg = /(?:ab)+/;
+console.log("ababa abbb ababab".match(reg)); // ["abab", index: 0, input: "ababa abbb ababab", groups: undefined]
+let reg = /(ab)+/;
+console.log("ababa abbb ababab".match(reg)); // ["abab", "ab", index: 0, input: "ababa abbb ababab", groups: undefined]
+```
+
 ## 正则匹配举例
 
-**验证电子邮件**：`/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/`
+### 验证电子邮件
+
+`/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/`
 
 1. 以`\w`起头，随后可以包含任意数量的“.”或“-”只要他们之间有一个或多个\w 分隔即可（对应于域名检测）；
 2. 用户名之后带一个@字符；
 3. 以\w 起头，随后可以包含任意数量的“.”或“-”只要他们之间有一个或多个\w 分隔即可（对应于邮箱地址检测）；
 4. 以“.”加上 2 到 3 个“\w”结尾。(对应于邮箱地址后缀的检测例如“.com”,“.cn”等)。
 
-**验证文件路径**：`/^(http|https|file):\/\/\S+\/\S+/i`
+### 验证文件路径
+
+`/^(http|https|file):\/\/\S+\/\S+/i`
 
 1.  文件路径使用 http 或 https 或 file 开头，后跟://
 2.  然后是任意个非空字符表示的文件路径
 3.  最后是/加上任意非空字符表示的文件名
 4.  修饰符 i 忽略大小写
+
+### 提取数据
+
+```javascript
+// 2021-08-14
+let reg = /(\d{4})-(\d{2})-(\d{2})/;
+
+console.log("2021-08-14".match(reg));
+//  ["2021-08-14", "2021", "08", "14", index: 0, input: "2021-08-14", groups: undefined]
+
+// 第二种解法,通过全局的$1...$9读取 引用的括号数据
+let reg = /(\d{4})-(\d{2})-(\d{2})/;
+let string = "2021-08-14";
+
+reg.test(string);
+
+console.log(RegExp.$1); // 2021
+console.log(RegExp.$2); // 08
+console.log(RegExp.$3); // 14
+```
+
+### 数据替换
+
+```javascript
+/*
+将以下格式替换为mm/dd/yyy
+2021-08-14
+*/
+
+let reg = /(\d{4})-(\d{2})-(\d{2})/;
+let string = "2021-08-14";
+
+// 第一种写法
+let result1 = string.replace(reg, "$2/$3/$1");
+console.log(result1); // 08/14/2021
+// 第二种写法
+let result2 = string.replace(reg, () => {
+  return RegExp.$2 + "/" + RegExp.$3 + "/" + RegExp.$1;
+});
+console.log(result2); // 08/14/2021
+// 第三种写法
+let result3 = string.replace(reg, ($0, $1, $2, $3) => {
+  return $2 + "/" + $3 + "/" + $1;
+});
+console.log(result3); // 08/14/2021
+```
+
+### 数字的千分位分割法
+
+```javascript
+let price = "123456789";
+let priceReg = /(?!^)(?=(\d{3})+$)/g;
+
+console.log(price.replace(priceReg, ",")); // 123,456,789
+```
+
+### 手机号 3-4-4 分割扩展
+
+```javascript
+const formatMobile = (mobile) => {
+  return String(mobile)
+    .slice(0, 11)
+    .replace(/(?<=\d{3})\d+/, ($0) => "-" + $0)
+    .replace(/(?<=[\d-]{8})\d{1,4}/, ($0) => "-" + $0);
+};
+
+console.log(formatMobile(123)); // 123
+console.log(formatMobile(12345)); // 123-45
+console.log(formatMobile(1234567)); // 123-4567
+console.log(formatMobile(123456789)); // 123-4567-89
+console.log(formatMobile(12345678911)); // 123-4567-8911
+```
+
+### 验证密码的合法性
+
+密码长度是 6-12 位，由数字、小写字符和大写字母组成，但必须至少包括 2 种字符
+
+有下面四种排列组合方式
+① 数字和小写字母组合
+
+② 数字和大写字母组合
+
+③ 小写字母与大写字母组合
+
+④ 数字、小写字母、大写字母一起组合
+
+```javascript
+// 表示条件①和②
+// let reg = /((?=.*\d)((?=.*[a-z])|(?=.*[A-Z])))/
+// 表示条件条件③
+// let reg = /(?=.*[a-z])(?=.*[A-Z])/
+// 表示条件①②③
+// let reg = /((?=.*\d)((?=.*[a-z])|(?=.*[A-Z])))|(?=.*[a-z])(?=.*[A-Z])/
+// 表示题目所有条件
+let reg =
+  /((?=.*\d)((?=.*[a-z])|(?=.*[A-Z])))|(?=.*[a-z])(?=.*[A-Z])^[a-zA-Z\d]{6,12}$/;
+
+console.log(reg.test("123456")); // false
+console.log(reg.test("1a1a1a")); // true
+```
 
 ## 正则表达式的使用
 

@@ -589,6 +589,424 @@ setFriendCount((fc) => fc * 2);
 - React 在事件处理程序完成运行后处理状态更新。这称为批处理。
 - 要在一个事件中多次更新某些状态可以使用 `setNumber(n => n + 1)`更新程序功能。
 
+### 更新状态中的对象
+
+State 可以保存任何类型的 JavaScript 值，包括对象。但是你不应该直接改变你在 React 状态下持有的对象。相反，当您想要更新一个对象时，您需要创建一个新对象（或复制现有对象），然后将状态设置为该副本。
+
+尽管 React 状态中的对象在技术上是可变的，但你应该将它们视为不可变的——就像数字、布尔值和字符串一样。您应该始终替换它们，而不是改变它们。
+
+#### 使用扩展语法复制对象
+
+```javascript
+import { useState } from "react";
+
+export default function Form() {
+  const [person, setPerson] = useState({
+    firstName: "Barbara",
+    email: "bhepworth@sculpture.com",
+  });
+
+  function handleFirstNameChange(e) {
+    setPerson({
+      ...person,
+      firstName: e.target.value,
+    });
+  }
+
+  function handleEmailChange(e) {
+    setPerson({
+      ...person,
+      email: e.target.value,
+    });
+  }
+
+  return (
+    <>
+      <label>
+        First name:
+        <input value={person.firstName} onChange={handleFirstNameChange} />
+      </label>
+        Email:
+        <input value={person.email} onChange={handleEmailChange} />
+      </label>
+      <p>
+        {person.firstName}({person.email})
+      </p>
+    </>
+  );
+}
+```
+
+您还可以在对象定义中使用`[]`大括号来指定具有动态名称的属性
+
+```javascript
+function handleChange(e) {
+  setPerson({
+    ...person,
+    [e.target.name]: e.target.value,
+  });
+}
+```
+
+#### 更新嵌套对象
+
+有这样的嵌套对象结构
+
+```javascript
+const [person, setPerson] = useState({
+  name: "Niki de Saint Phalle",
+  artwork: {
+    title: "Blue Nana",
+    city: "Hamburg",
+    image: "https://i.imgur.com/Sd1AgUOm.jpg",
+  },
+});
+```
+
+如果你想更新`person.artwork.city`，不可以使用`person.artwork.city = 'New Delhi';`，需要生成新的对象
+
+```javascript
+setPerson({
+  ...person, // Copy other fields
+  artwork: {
+    // but replace the artwork
+    ...person.artwork, // with the same one
+    city: "New Delhi", // but in New Delhi!
+  },
+});
+```
+
+#### 用 Immer 编写简洁的更新逻辑
+
+`Immer` 是一个流行的库，可让您使用方便但可变的语法进行编写，并负责为您生成副本。
+
+> Immer 提供的 draft 是一种特殊类型的对象，称为 Proxy，它“记录”你用它做了什么。这就是为什么你可以随意改变它！在后台，Immer 会找出哪些部分 draft 已被更改，并生成一个包含您所做编辑的全新对象。
+
+```javascript
+import { useImmer } from "use-immer";
+
+export default function Form() {
+  const [person, updatePerson] = useImmer({
+    name: "Niki de Saint Phalle",
+    artwork: {
+      title: "Blue Nana",
+      city: "Hamburg",
+      image: "https://i.imgur.com/Sd1AgUOm.jpg",
+    },
+  });
+
+  function handleNameChange(e) {
+    updatePerson((draft) => {
+      draft.name = e.target.value;
+    });
+  }
+  return (
+    <>
+      <label>
+        Name:
+        <input value={person.name} onChange={handleNameChange} />
+      </label>
+      <p>
+        <i>{person.artwork.title}</i>
+        {" by "}
+        {person.name}
+        <br />
+        (located in {person.artwork.city})
+      </p>
+      <img src={person.artwork.image} alt={person.artwork.title} />
+    </>
+  );
+}
+```
+
+### 更新状态数组
+
+数组是另一种类型的可变 JavaScript 对象，您可以将其存储在状态中，并且应该被视为不可变的。就像对象一样，当您想要更新存储在 state 中的数组时，您需要创建一个新数组（或复制现有数组），然后设置 state 以使用新数组。
+
+您应该将 React 状态的数组视为只读的。这意味着您不应该重新分配数组中的项目，例如 `arr[0] = 'bird'`，也不应该使用改变数组的方法，例如 `push()`和 `pop()`。您可以通过调用其非变异方法（如`filter`、`concat`,`[...arr]`、`slice`和`map` ）创建一个新数组
+
+**添加**
+
+```javascript
+setArtists(
+  // Replace the state
+  [
+    // with a new array
+    ...artists, // that contains all the old items
+    { id: nextId++, name: name }, // and one new item at the end
+  ]
+);
+```
+
+**移除**
+
+```javascript
+setArtists(artists.filter((a) => a.id !== artist.id));
+```
+
+**替换**
+
+```javascript
+const nextCounters = counters.map((c, i) => {
+  if (i === index) {
+    // Increment the clicked counter
+    return c + 1;
+  } else {
+    // The rest haven't changed
+    return c;
+  }
+});
+setCounters(nextCounters);
+```
+
+**插入**
+
+```javascript
+const insertAt = 1; // Could be any index
+const nextArtists = [
+  // Items before the insertion point:
+  ...artists.slice(0, insertAt),
+  // New item:
+  { id: nextId++, name: name },
+  // Items after the insertion point:
+  ...artists.slice(insertAt),
+];
+setArtists(nextArtists);
+```
+
+**反转或排序**
+`reverse()`和`sort()`方法会改变原始数组，需要先复制数组，然后对其进行更改。
+
+```javascript
+const nextList = [...list];
+nextList.reverse();
+setList(nextList);
+```
+
+**更新数组内的对象**
+
+问题代码：
+
+```javascript
+const myNextList = [...myList];
+const artwork = myNextList.find((a) => a.id === artworkId);
+artwork.seen = nextSeen; // Problem: mutates an existing item
+setMyList(myNextList);
+```
+
+更改`artwork.seen`会更改原始数组，可以使用 map 没有突变的更新版本替换旧数组
+
+```javascript
+setMyList(myList.map(artwork => {
+  if (artwork.id === artworkId) {
+    // Create a *new* object with changes
+    return { ...artwork, seen: nextSeen };
+  } else {
+    // No changes
+    return artwork;
+  }
+});
+
+```
+
+**用 Immer 编写简洁的更新逻辑**
+
+```javascript
+updateMyTodos((draft) => {
+  const artwork = draft.find((a) => a.id === artworkId);
+  artwork.seen = nextSeen;
+});
+```
+
+您也可以将和`pop()`、`push()`之类的变异方法应用于 draft.
+
+## 管理状态
+
+### 不要将 props 赋值给 state
+
+```javascript
+function Message({ messageColor }) {
+  const [color, setColor] = useState(messageColor);
+```
+
+当 messageColor 改变时 color 状态变量将不会被更新
+
+请直接在代码中使用 messageColor，如果你想给它一个更短的名字，使用一个常量：
+
+```javascript
+function Message({ messageColor }) {
+  const color = messageColor;
+
+```
+
+### 受控和非受控组件
+
+通常将具有某些本地状态的组件称为“不受控制”，相反，当组件中的重要信息由 props 而不是其自身的本地状态驱动时，您可能会说组件是“受控的”。这让父组件完全指定其行为。
+
+不受控制的组件在其父组件中更易于使用，因为它们需要较少的配置。但是当您想将它们协调在一起时，它们就不太灵活了。受控组件具有最大的灵活性，但它们需要父组件使用 props 完全配置它们。
+
+在实践中，“受控”和“不受控”并不是严格的技术术语——每个组件通常都有本地状态和道具的某种组合。但是，这是讨论组件如何设计以及它们提供哪些功能的有用方式。
+
+### 保持和重置状态
+
+**保持**
+
+React 使用树结构来管理和建模您制作的 UI。React 从你的 JSX 生成 UI 树。然后 React DOM 更新浏览器 DOM 元素以匹配该 UI 树。（React Native 将这些树转换为特定于移动平台的元素。）
+
+当给组件状态时，你可能会认为状态“存在”组件内部，但是状态实际上保存在 React 内部，React 通过该组件在 UI 树中的位置将其持有的每个状态与正确的组件相关联。
+
+**只要组件在 UI 树中的位置呈现，React 就会保留组件的状态。** 相同位置的相同组件保留状态，如果它被移除，或者不同的组件被渲染在相同的位置，React 会丢弃它的状态。
+
+```javascript
+import { useState } from "react";
+
+export default function App() {
+  const [isFancy, setIsFancy] = useState(false);
+  return (
+    <div>
+      {isFancy ? <Counter isFancy={true} /> : <Counter isFancy={false} />}
+      <label>
+        <input
+          type="checkbox"
+          checked={isFancy}
+          onChange={(e) => {
+            setIsFancy(e.target.checked);
+          }}
+        />
+        Use fancy styling
+      </label>
+    </div>
+  );
+}
+```
+
+当您勾选或清除复选框时，Counter 状态不会重置。无论 isFancy 是 true 还是 false。从 React 的角度来看，它是同一个组件。
+
+**重置**
+
+当在同一位置渲染不同的组件时，它会重置其整个子树的状态。
+
+```javascript
+export default function App() {
+  const [isFancy, setIsFancy] = useState(false);
+  return (
+    <div>
+      {isFancy ? (
+        <div>
+          <Counter isFancy={true} />
+        </div>
+      ) : (
+        <section>
+          <Counter isFancy={false} />
+        </section>
+      )}
+      <label>
+        <input
+          type="checkbox"
+          checked={isFancy}
+          onChange={(e) => {
+            setIsFancy(e.target.checked);
+          }}
+        />
+        Use fancy styling
+      </label>
+    </div>
+  );
+}
+```
+
+单击复选框时，计数器状态会重置。因为`div`下第一个子元素从`div`变成了`section`，它下面的整个树（包括和它的状态）也被销毁了
+
+不应该嵌套函数组件，例如
+
+```javascript
+export default function MyComponent() {
+  const [counter, setCounter] = useState(0);
+
+  function MyTextField() {
+    const [text, setText] = useState("");
+
+    return <input value={text} onChange={(e) => setText(e.target.value)} />;
+  }
+
+  return (
+    <>
+      <MyTextField />
+      <button
+        onClick={() => {
+          setCounter(counter + 1);
+        }}
+      >
+        Clicked {counter} times
+      </button>
+    </>
+  );
+}
+```
+
+每次渲染都会创建一个不同 MyTextField 函数，在同一个位置渲染了一个不同的组件，所以 React 会重置下面的所有状态。这会导致错误和性能问题。为避免此问题，**请始终在顶层声明组件函数，并且不要嵌套它们的定义。**
+
+### 如何在同一位置重置状态
+
+- 在不同位置渲染组件
+- 给每个组件一个明确的身份 key
+
+**在不同位置渲染组件**
+
+```javascript
+export default function Scoreboard() {
+  const [isPlayerA, setIsPlayerA] = useState(true);
+  return (
+    <div>
+      {isPlayerA &&
+        <Counter person="Taylor" />
+      }
+      {!isPlayerA &&
+        <Counter person="Sarah" />
+      }
+      <button onClick={() => {
+        setIsPlayerA(!isPlayerA);
+      }}>
+        Next player!
+      </button>
+    </div>
+  );
+}
+
+}
+
+```
+
+**使用键重置状态**
+
+```javascript
+export default function Scoreboard() {
+  const [isPlayerA, setIsPlayerA] = useState(true);
+  return (
+    <div>
+      {isPlayerA ? (
+        <Counter key="Taylor" person="Taylor" />
+      ) : (
+        <Counter key="Sarah" person="Sarah" />
+      )}
+      <button
+        onClick={() => {
+          setIsPlayerA(!isPlayerA);
+        }}
+      >
+        Next player!
+      </button>
+    </div>
+  );
+}
+```
+
+> 如何保留已移除组件的状态？在真正的聊天应用程序中，可能希望在用户再次选择前一个收件人时恢复输入状态。有几种方法可以使不再可见的组件的状态保持“活动”：
+>
+> - 使用 CSS 隐藏其他聊天，此解决方案适用于简单的 UI，但是如果隐藏的树很大并且包含很多 DOM 节点，它会变得非常慢。
+> - 提升状态将每个收件人的待处理消息保留在父组件中
+> - 借助 localStorage 等存储信息
+
 ## Hook
 
 在 React 中，useState 以及任何其他以“ use,”开头的函数都称为 Hook。
