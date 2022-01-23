@@ -211,7 +211,12 @@ const test: Record<string, string> = {
 
 ### Pick & Omit
 
-Pick：主要作用是从一组属性中拿出某个属性，并将其返回，使用方法是`Pick<P, K>`
+**Pick**：主要作用是从一组属性中拿出某个属性，并将其返回，使用方法是`Pick<P, K>`
+```javascript
+type Pick<T, K extends keyof T> = {
+    [P in K]: T[P];
+};
+```
 
 ```javascript
 interface Person {
@@ -221,7 +226,7 @@ interface Person {
 type test = Pick<Person, 'age'> // type test = {age: number;}
 ```
 
-Omit：主要作用是从一组属性中排除某个属性，并将排除属性后的结果返回。使用方法是`Omit<P, K>`，与 Pick 的结果是相反的，如果说 Pick 是取出，那么 Omit 则是过滤的效果
+**Omit**：主要作用是从一组属性中排除某个属性，并将排除属性后的结果返回。使用方法是`Omit<P, K>`，与 Pick 的结果是相反的，如果说 Pick 是取出，那么 Omit 则是过滤的效果
 
 ```javascript
 interface Person {
@@ -229,11 +234,17 @@ interface Person {
   age: number
 }
 type test = Omit<Person, 'age'> // type test = {name: string;}
+type test = Omit<Person, 'age'|'name'> // 去除多个
 ```
-
+重写原有字段的类型
+```javascript
+type test = Omit<Person, 'age'> & {
+  age: string;
+};
+```
 ### Exclude & Extract
 
-Exclude：从一个联合类型中排除掉属于另一个联合类型的子集，使用形式是`Exclude<T, S>`，如果 T 中的属性在 S 不存在那么就会返回。
+**Exclude**：从一个联合类型中排除掉属于另一个联合类型的子集，使用形式是`Exclude<T, S>`，如果 T 中的属性在 S 不存在那么就会返回。
 
 ```javascript
 interface A {
@@ -249,7 +260,7 @@ interface B {
 type outPut = Exclude<keyof A, keyof B> // type outPut = "hidden" | "status"
 ```
 
-Extract：跟 Exclude 相反，从一个联合类型中取出属于另一个联合类型的子集
+**Extract**：跟 Exclude 相反，从一个联合类型中取出属于另一个联合类型的子集
 
 ```javascript
 interface A {
@@ -275,4 +286,15 @@ interface Person {
   age: number
 }
 type test = Partial<Person> // {name?: string,age?: number}
+```
+### Required
+
+将类型中所有选项变为必选，去除所有？
+
+```javascript
+interface Person {
+  name?: string
+  age?: number
+}
+type test = Person<Person> // {name: string,age: number}
 ```
