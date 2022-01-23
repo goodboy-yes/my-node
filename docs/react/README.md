@@ -23,6 +23,202 @@ export default function Profile() {
 
 大多数 React 应用程序一直使用组件。这意味着您不仅可以将组件用于可重复使用的部分，例如按钮，还可以用于较大的部分，例如侧边栏、列表以及最终的完整页面！**组件是组织 UI 代码和标记的一种便捷方式**，即使其中一些仅使用一次。
 
+## Hook
+
+在 React 中，useState 以及任何其他以“ use,”开头的函数都称为 Hook。
+
+Hooks 是特殊的函数，仅在 React 渲染时可用。它们让你“连接”到不同的 React 特性。
+
+> 调用 Hooks 仅在组件或另一个 Hook 的顶层有效，不能在条件、循环或其他嵌套函数中调用 Hook
+
+### useState
+
+但组件里的数据改变时，要使用新数据更新组件，需要做两件事：
+
+- 保留渲染之间的数据。
+- 触发 React 以使用新数据渲染组件（重新渲染）。
+
+当定义常规变量，有两件事阻止了视图更新：
+
+- 常规变量不会在渲染之间持续存在。当 React 第二次渲染这个组件时，它会从头开始渲染——它不考虑对常规变量的任何更改。
+- 对常规变量的更改不会触发渲染。React 没有意识到它需要使用新数据再次渲染组件。
+
+而使用 `useState` 可以保持呈现之间的数据，并提供一个状态设置函数，用于更新变量并触发 React 再次渲染组件
+
+```javascript
+import { useState } from "react";
+
+export default function Gallery() {
+  const [index, setIndex] = useState(0);
+
+  function handleClick() {
+    setIndex(index + 1);
+  }
+
+  return (
+    <>
+      <button onClick={handleClick}>Next</button>
+      <h2>
+        <i>{index} </i>
+      </h2>
+    </>
+  );
+}
+```
+
+> [React 如何知道要返回哪个状态？](https://beta.reactjs.org/learn/state-a-components-memory#giving-a-component-multiple-state-variables)
+
+如果你渲染同一个组件两次，每个副本都会有完全隔离的状态！更改其中一个不会影响另一个。
+
+### useRef
+
+#### 使用 Refs 引用值
+
+当您希望组件“记住”某些信息，但又不希望该信息触发新的渲染时，您可以使用 ref
+
+```javascript
+import { useRef } from "react";
+const ref = useRef(0);
+```
+
+ref 是一个普通的 JavaScript 对象，具有可以读取和修改的属性 current。
+
+```javascript
+{
+  current: 0;
+}
+```
+
+**组件不会随着 ref 改变而重新渲染**。与 state 一样，refs 在重新渲染之间值由 React 保留，不使用 useRef 定义的局部变量重新渲染时都会从头开始初始化
+
+#### refs 和 state 的区别
+
+- refs 更改时不会触发重新渲染，state 会
+- refs 是“可变的”，可以在渲染过程之外修改和更新 current 的值，state 是“不可变”的，必须使用状态设置功能来修改状态变量以排队重新渲染。
+
+#### 使用 Refs 操作 DOM
+
+```javascript
+import { useRef } from "react";
+const myRef = useRef(null);
+```
+
+将其作为属性传递给 DOM 节点：
+
+```javascript
+<div ref={myRef}>
+```
+
+可以从事件处理程序访问此 DOM 节点并使用在其上定义的内置浏览器 API 。
+
+```javascript
+myRef.current.scrollIntoView();
+```
+
+在循环条件中使用 ref，解决方案是将函数传递给 ref 属性，这称为“引用回调”。React 将在设置 ref 时使用 DOM 节点调用 ref 回调，当 DOM 清除时为 null
+
+```javascript
+import { useRef } from "react";
+
+export default function CatFriends() {
+  const itemsRef = useRef(null);
+
+  function getMap() {
+    if (!itemsRef.current) {
+      // Initialize the Map on first usage.
+      itemsRef.current = new Map();
+    }
+    return itemsRef.current;
+  }
+
+  return (
+    <>
+      <div>
+        <ul>
+          {catList.map((cat) => (
+            <li
+              key={cat.id}
+              ref={(node) => {
+                const map = getMap();
+                if (node) {
+                  map.set(cat.id, node);
+                } else {
+                  map.delete(cat.id);
+                }
+              }}
+            ></li>
+          ))}
+        </ul>
+      </div>
+    </>
+  );
+}
+```
+
+**访问另一个组件的 DOM 节点**
+
+在自己的组件上放置一个 ref，默认情况下会得到 null，发生这种情况是因为默认情况下 React 不允许组件访问其他组件的 DOM 节点。想要公开其 DOM 节点的组件必须使用 `forwardRef` API：
+
+```javascript
+import { forwardRef, useRef } from "react";
+
+const MyInput = forwardRef((props, ref) => {
+  return <input {...props} ref={ref} />;
+});
+
+export default function Form() {
+  const inputRef = useRef(null);
+  return (
+    <>
+      <MyInput ref={inputRef} />
+    </>
+  );
+}
+```
+
+**使用命令句柄公开 API 的子集**
+
+在上面的例子中，MyInput 暴露了原始的 DOM 输入元素，我们可以使用`useImperativeHandle`限制公开的功能
+
+```javascript
+import { forwardRef, useRef, useImperativeHandle } from "react";
+
+const MyInput = forwardRef((props, ref) => {
+  const realInputRef = useRef(null);
+  useImperativeHandle(ref, () => ({
+    // Only expose focus and nothing else
+    focus() {
+      realInputRef.current.focus();
+    },
+  }));
+  return <input {...props} ref={realInputRef} />;
+});
+
+export default function Form() {
+  const inputRef = useRef(null);
+  return <MyInput ref={inputRef} />;
+}
+```
+
+`inputRef.current`只会有 focus 方法。在这种情况下，引用“句柄”不是 DOM 节点，而是`useImperativeHandle` 创建的自定义对象。
+
+**使用 `flushSync` 同步刷新状态更新**
+
+在 React 中，状态更新是排队的。这里会导致一个问题，因为 setState 它不会立即更新 DOM，我们在使用 ref 操作 DOM 时可能会发生意想不到的结果，要解决这个问题，可以使用`flushSync`强制 React 同步更新（“刷新”）DOM
+
+```javascript
+import { flushSync } from "react-dom";
+
+flushSync(() => {
+  setTodos([...todos, newTodo]);
+});
+listRef.current.lastChild.scrollIntoView();
+```
+
+`flushSync`将指示 React 在包裹在其中的代码执行后立即同步更新 DOM 。结果，当您尝试滚动到最后一个 todo 时，它已经在 DOM 中
+
+**我们应该避免用 ref 更改由 React 管理的 DOM 节点**，如果确实修改了 React 管理的 DOM 节点，请修改 React 没有理由更新的部分。
+
 ## JSX
 
 JSX 是 JavaScript 的语法扩展，允许您在 JavaScript 文件中编写类似 HTML 的标记。React 组件用 JSX 将渲染逻辑与标记组合在一起，因为它们是相关的。
@@ -1007,49 +1203,257 @@ export default function Scoreboard() {
 > - 提升状态将每个收件人的待处理消息保留在父组件中
 > - 借助 localStorage 等存储信息
 
-## Hook
+### 使用 reducer 整合状态逻辑
 
-在 React 中，useState 以及任何其他以“ use,”开头的函数都称为 Hook。
+随着组件的增长，状态逻辑数量也在增长，为了降低这种复杂性并将所有逻辑保存在一个易于访问的位置，您可以将状态逻辑移动到组件外部的单个函数中，称为`“reducer”`。
 
-Hooks 是特殊的函数，仅在 React 渲染时可用。它们让你“连接”到不同的 React 特性。
-
-> 调用 Hooks 仅在组件或另一个 Hook 的顶层有效，不能在条件、循环或其他嵌套函数中调用 Hook
-
-### useState
-
-但组件里的数据改变时，要使用新数据更新组件，需要做两件事：
-
-- 保留渲染之间的数据。
-- 触发 React 以使用新数据渲染组件（重新渲染）。
-
-当定义常规变量，有两件事阻止了视图更新：
-
-- 常规变量不会在渲染之间持续存在。当 React 第二次渲染这个组件时，它会从头开始渲染——它不考虑对常规变量的任何更改。
-- 对常规变量的更改不会触发渲染。React 没有意识到它需要使用新数据再次渲染组件。
-
-而使用 `useState` 可以保持呈现之间的数据，并提供一个状态设置函数，用于更新变量并触发 React 再次渲染组件
+**reducer 函数示例：**
 
 ```javascript
-import { useState } from "react";
+function tasksReducer(tasks, action) {
+  switch (action.type) {
+    case "added": {
+      return [
+        ...tasks,
+        {
+          id: action.id,
+          text: action.text,
+          done: false,
+        },
+      ];
+    }
+    case "changed": {
+      return tasks.map((t) => {
+        if (t.id === action.task.id) {
+          return action.task;
+        } else {
+          return t;
+        }
+      });
+    }
+    case "deleted": {
+      return tasks.filter((t) => t.id !== action.id);
+    }
+    default: {
+      throw Error("Unknown action: " + action.type);
+    }
+  }
+}
+```
 
-export default function Gallery() {
-  const [index, setIndex] = useState(0);
+其中当前状态 tasks 声明为第一个参数，调用参数 action 为第二个参数
 
-  function handleClick() {
-    setIndex(index + 1);
+**使用 reducer：**
+
+```javascript
+import { useReducer } from "react";
+import tasksReducer from "./tasksReducer.js";
+const [tasks, dispatch] = useReducer(tasksReducer, initialTasks);
+
+export default function TaskBoard() {
+  const [tasks, dispatch] = useReducer(
+    tasksReducer,
+    initialTasks
+  );
+
+  function handleAddTask(text) {
+    dispatch({
+      type: 'added',
+      id: nextId++,
+      text: text,
+    });
   }
 
+  ...
+
+}
+```
+
+### 使用 Immer 编写简洁的 reducer
+
+```javascript
+import { useImmerReducer } from 'use-immer';
+function tasksReducer(draft, action) {
+  switch (action.type) {
+    case 'added': {
+      draft.push({
+        id: action.id,
+        text: action.text,
+        done: false
+      });
+      break;
+    }
+    case 'changed': {
+      const index = draft.findIndex(t =>
+        t.id === action.task.id
+      );
+      draft[index] = action.task;
+      break;
+    }
+    case 'deleted': {
+      return draft.filter(t => t.id !== action.id);
+    }
+    default: {
+      throw Error('Unknown action: ' + action.type);
+    }
+  }
+}
+
+export default function TaskBoard() {
+  const [tasks, dispatch] = useImmerReducer(
+    tasksReducer,
+    initialTasks
+  );
+
+  function handleAddTask(text) {
+    dispatch({
+      type: 'added',
+      id: nextId++,
+      text: text,
+    });
+  }
+  ...
   return (
-    <>
-      <button onClick={handleClick}>Next</button>
-      <h2>
-        <i>{index} </i>
-      </h2>
-    </>
+    ...
   );
 }
 ```
 
-> [React 如何知道要返回哪个状态？](https://beta.reactjs.org/learn/state-a-components-memory#giving-a-component-multiple-state-variables)
+### 使用 Context 深度传递数据
 
-如果你渲染同一个组件两次，每个副本都会有完全隔离的状态！更改其中一个不会影响另一个。
+当你需要通过树深入传递一些 props 时，许多组件需要相同的道具，它可能会变得冗长和不方便。使用 React 的 Context 功能可以在不传递道具的情况下将数据“传送”到树中需要它的组件
+
+使用 Context 的步骤：
+
+- 创建 Context。
+- 从需要数据的组件中使用该 Context。
+- 从指定数据的组件中提供该 Context。
+
+**创建 Context。**
+
+```javascript
+// LevelContext.js
+import { createContext } from "react";
+export const LevelContext = createContext(1);
+```
+
+您可以传递任何类型的值给默认值，甚至是对象
+
+**使用 Context**
+
+```javascript
+import { useContext } from "react";
+import { LevelContext } from "./LevelContext.js"; // 上面定义的LevelContext
+export default function Heading({ children }) {
+  const level = useContext(LevelContext);
+  // ...
+}
+```
+
+useContext 是一个钩子。就像 useState 和 useReducer，你只能在 React 组件的顶层调用 Hook。
+
+**提供 Context**
+
+```javascript
+import { LevelContext } from "./LevelContext.js";
+
+export default function Section({ children }) {
+  const level = useContext(LevelContext);
+  return (
+    <section className="section">
+      <LevelContext.Provider value={level + 1}>
+        {children}
+      </LevelContext.Provider>
+    </section>
+  );
+}
+```
+
+这告诉 React：如果`<Section>`任意子组件要求 LevelContext，该组件将使用其上方 UI 树中最近的`<LevelContext.Provider>`的值。
+
+**总结**
+
+- 不要过度使用 Context，仅仅因为你需要将 props 传递几个层次，并不意味着你应该把这些信息放到 Context 中。
+  使用 props 让哪些组件使用哪些数据非常清楚，维护代码的人会很高兴使用 props 明确数据流。在使用 Context 之前，请先考虑传递 props 或 JSX 做为 children.
+
+- 通常将 reducer 与 Context 一起使用来管理复杂的状态并将其传递给远处的组件，Context 不限于静态值，**如果你在下一次渲染中传递一个不同的值，React 将更新下面读取它的所有组件**。这就是为什么 Context 经常与状态结合使用的原因。
+
+### 使用 Reducer 和 Context 进行扩展
+
+```javascript
+// app.js
+import AddTask from "./AddTask.js";
+import TaskList from "./TaskList.js";
+import { TasksProvider } from "./TasksContext.js";
+
+export default function TaskBoard() {
+  return (
+    <TasksProvider>
+      <h1>Day off in Kyoto</h1>
+      <AddTask />
+      <TaskList />
+    </TasksProvider>
+  );
+}
+```
+
+```javascript
+// TasksContext.js
+import { createContext, useContext, useReducer } from "react";
+
+const TasksContext = createContext(null);
+const TasksDispatchContext = createContext(null);
+
+export function TasksProvider({ children }) {
+  const [tasks, dispatch] = useReducer(tasksReducer, initialTasks);
+  return (
+    <TasksContext.Provider value={tasks}>
+      <TasksDispatchContext.Provider value={dispatch}>
+        {children}
+      </TasksDispatchContext.Provider>
+    </TasksContext.Provider>
+  );
+}
+
+export function useTasks() {
+  return useContext(TasksContext);
+}
+
+export function useTasksDispatch() {
+  return useContext(TasksDispatchContext);
+}
+
+function tasksReducer(tasks, action) {
+  switch (action.type) {
+    case "added": {
+      return [
+        ...tasks,
+        {
+          id: action.id,
+          text: action.text,
+          done: false,
+        },
+      ];
+    }
+    ...
+  }
+}
+```
+
+每个组件都读取它需要的 Context
+
+```javascript
+// AddTask.js
+import { useState, useContext } from "react";
+import { TasksDispatchContext } from "./TasksContext.js";
+
+export default function AddTask({ onAddTask }) {
+  const [text, setText] = useState("");
+  const dispatch = useContext(TasksDispatchContext);
+  return <>...</>;
+}
+
+let nextId = 3;
+```
+
+如果你的函数以 `use` 开头，像 `useTasks` 和 `useTasksDispatch`， 这样的函数称为 自定义 Hook，可以在其中使用其他 Hook
