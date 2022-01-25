@@ -79,7 +79,7 @@ export default defineUserConfig<DefaultThemeOptions>({
       },
       {
         text: "Vue3",
-        children: ["/vue3/difference-from-vue2", "/vue3/vite"],
+        children: ["/vue3/difference-from-vue2", "/vue3/vite","/vue3/practice"],
       },
       {
         text: "React",
