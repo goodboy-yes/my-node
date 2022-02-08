@@ -1,4 +1,4 @@
-# React
+# 使用
 
 ## 定义组件
 
@@ -69,6 +69,49 @@ export default function Gallery() {
 > [React 如何知道要返回哪个状态？](https://beta.reactjs.org/learn/state-a-components-memory#giving-a-component-multiple-state-variables)
 
 如果你渲染同一个组件两次，每个副本都会有完全隔离的状态！更改其中一个不会影响另一个。
+
+#### 避免重新创建初始状态
+
+传递给`useState`的初始状态仅用于初始渲染。对于下一次渲染，此参数将被忽略。如果创建初始状态的成本很高，那么在每次渲染时都创建并丢弃它是一种浪费。为避免这种情况，您可以将初始化函数传递给 `useState`。 `React` 只会在初始化期间运行它来计算初始状态，但不会在重新渲染时运行它。
+f
+
+```javascript
+function createInitialTodos() {
+  const initialTodos = [];
+  for (let i = 0; i < 50; i++) {
+    initialTodos.push({
+      id: i,
+      text: "Item #" + i,
+    });
+  }
+  return initialTodos;
+}
+
+const [todos, setTodos] = useState(createInitialTodos);
+```
+
+#### 用键重置状态
+
+可以通过将不同的值传递给组件的`key`来重置组件的状态。
+
+下面示例当点击`reset`按钮时，form 组件里的数据会被重置
+
+```javascript
+export default function App() {
+  const [version, setVersion] = useState(0);
+
+  function handleReset() {
+    setVersion(version + 1);
+  }
+
+  return (
+    <>
+      <button onClick={handleReset}>Reset</button>
+      <Form key={version} />
+    </>
+  );
+}
+```
 
 ### useRef
 

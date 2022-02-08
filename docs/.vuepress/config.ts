@@ -6,12 +6,7 @@ export default defineUserConfig<DefaultThemeOptions>({
   title: "Gkc's notes",
   description: "Record knowledge",
   base: "/my-notes/",
-  plugins: [
-    "@vuepress/plugin-search",
-    {
-      maxSuggestions: 10,
-    },
-  ],
+  plugins: ["@vuepress/plugin-search"],
   themeConfig: {
     logo: "https://img2.baidu.com/it/u=157071915,2692109510&fm=26&fmt=auto&gp=0.jpg",
     repo: "https://github.com/goodboy-yes/my-node",
@@ -79,10 +74,15 @@ export default defineUserConfig<DefaultThemeOptions>({
       },
       {
         text: "Vue3",
-        children: ["/vue3/difference-from-vue2", "/vue3/vite","/vue3/practice"],
+        children: [
+          "/vue3/difference-from-vue2",
+          "/vue3/vite",
+          "/vue3/practice",
+        ],
       },
       {
         text: "React",
+        children: ["/React/use", "/React/react-router"],
         link: "/react",
       },
       {
