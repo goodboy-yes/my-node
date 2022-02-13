@@ -195,7 +195,7 @@ export default function Invoices() {
 ### 以编程方式导航
 
 ```jsx
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function Invoice() {
   let navigate = useNavigate();
@@ -213,5 +213,33 @@ export default function Invoice() {
       </p>
     </main>
   );
+}
+```
+
+### useRoutes
+
+`useRoutes`功能上等同于`<Routes>`，但它使用 JavaScript 对象而不是`<Route>`元素来定义路由
+
+```jsx
+import * as React from "react";
+import { useRoutes } from "react-router-dom";
+
+function App() {
+  let element = useRoutes([
+    {
+      path: "/",
+      element: <Dashboard />,
+      children: [
+        {
+          path: "messages",
+          element: <DashboardMessages />,
+        },
+        { path: "tasks", element: <DashboardTasks /> },
+      ],
+    },
+    { path: "team", element: <AboutPage /> },
+  ]);
+
+  return element;
 }
 ```
