@@ -716,3 +716,29 @@ Object.defineProperties(obj, {
   // etc. etc.
 });
 ```
+
+#### 剩余参数和 arguments 对象的区别
+
+剩余参数和 arguments 对象之间的区别主要有三个：
+
+- 剩余参数只包含那些没有对应形参的实参，而 arguments 对象包含了传给函数的所有实参。
+- arguments 对象不是一个真正的数组，而剩余参数是真正的 Array 实例，也就是说你能够在它上面直接使用所有的数组方法，比如 sort，map，forEach 或 pop。
+- arguments 对象还有一些附加的属性 （如 callee 属性）。
+
+arguments 转为数组：
+
+```javascript
+var normalArray = Array.prototype.slice.call(arguments);
+// -- or --
+var normalArray = [].slice.call(arguments);
+// -- or --
+var normalArray = Array.from(arguments);
+```
+
+剩余参数
+
+```javascript
+function f(...args) {
+  var normalArray = args;
+}
+```
