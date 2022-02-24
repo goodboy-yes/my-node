@@ -1778,3 +1778,83 @@ app.config.globalProperties.$filters = {
 - 在 Vue 2.x 中，应用根容器的 `outerHTML` 将替换为根组件模板 (如果根组件没有模板/渲染选项，则最终编译为模板)。VUE3.x 现在使用应用程序容器的 `innerHTML`。
 - `destroyed` 生命周期选项被重命名为 `unmounted`
 - `beforeDestroy` 生命周期选项被重命名为 `beforeUnmount`
+
+## 原理差异
+
+### 响应式原理
+
+Vue2 响应式原理基础是`Object.defineProperty`；Vue3 响应式原理基础是 `Proxy`。
+
+**Object.defineProperty**
+
+直接在一个对象上定义新的属性或修改现有的属性，并返回对象。
+Tips： writable 和 value 与 getter 和 setter 不共存。
+
+```js
+let obj = {}
+let name = '瑾行'
+Object.defineProperty(obj, 'name', {
+  enumerable: true, // 可枚举（是否可通过for...in 或 Object.keys()进行访问）
+  configurable: true, // 可配置（是否可使用delete删除，是否可再次设置属性）
+  // value: '', // 任意类型的值，默认undefined
+  // writable: true, // 可重写
+  get: function() {
+    return name
+  },
+  set: function(value) {
+    name = value
+  }
+})
+```
+Vue3弃用主要原因：无法监听对象或数组新增、删除的元素。Vue2 针对常用数组原型方法push、pop、shift、unshift、splice、sort、reverse进行了hack处理；提供Vue.set监听对象/数组新增属性。对象的新增/删除响应，还可以new个新对象，新增则合并新属性和旧对象；删除则将删除属性后的对象深拷贝给新对象。
+
+Tips： Object.defineOProperty是可以监听数组已有元素，但 Vue2 没有提供的原因是性能问题
+
+**Proxy**
+
+`Proxy`是ES6新特性，通过第2个参数handler拦截目标对象的行为。相较于`Object.defineProperty`提供语言全范围的响应能力，消除了局限性。但在兼容性上放弃了（IE11以下）
+
+### 虚拟DOM
+
+Vue3 相比于 Vue2 虚拟DOM 上增加`patchFlag`字段。
+
+```js
+export const enum PatchFlags { 
+  TEXT = 1, // 动态文本内容
+  CLASS = 1 << 1, // 动态类名
+  STYLE = 1 << 2, // 动态样式
+  PROPS = 1 << 3, // 动态属性，不包含类名和样式
+  FULL_PROPS = 1 << 4, // 具有动态 key 属性，当 key 改变，需要进行完整的 diff 比较
+  HYDRATE_EVENTS = 1 << 5, // 带有监听事件的节点
+  STABLE_FRAGMENT = 1 << 6, // 不会改变子节点顺序的 fragment
+  KEYED_FRAGMENT = 1 << 7, // 带有 key 属性的 fragment 或部分子节点
+  UNKEYED_FRAGMENT = 1 << 8,  // 子节点没有 key 的fragment
+  NEED_PATCH = 1 << 9, // 只会进行非 props 的比较
+  DYNAMIC_SLOTS = 1 << 10, // 动态的插槽
+  HOISTED = -1,  // 静态节点，diff阶段忽略其子节点
+  BAIL = -2 // 代表 diff 应该结束
+}
+```
+
+1 代表节点为动态文本节点，那在 diff 过程中，只需比对文本内容，无需关注 class、style等。除此之外，发现所有的静态节点，都保存为一个变量进行静态提升，可在重新渲染时直接引用，无需重新创建。
+
+### Diff 优化
+
+`TODO`
+
+### 打包优化
+
+Vue3 中针对全局 和内部的API进行了重构，并考虑到tree-shaking的支持。因此，全局 API 现在只能作为ES模块构建的命名导出进行访问。
+
+```js
+import { nextTick } from 'vue'
+
+nextTick(() => {
+  // 一些和DOM有关的东西
+})
+```
+
+### TypeScript 支持
+
+Vue3 由TS重写，相对于 Vue2 有更好地TypeScript支持。
+
