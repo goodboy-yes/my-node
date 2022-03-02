@@ -123,6 +123,10 @@ export default defineUserConfig<DefaultThemeOptions>({
         text: "VSCode",
         link: "/vs-code",
       },
+      {
+        text: "Docker",
+        link: "/docker",
+      },
     ],
   },
 });
