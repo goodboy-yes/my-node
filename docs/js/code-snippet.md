@@ -114,6 +114,19 @@ function scrollToTop() {
   }
 }
 ```
+### 指定元素滚动到视口
+
+[`scrollIntoView()`](https://developer.mozilla.org/zh-CN/docs/Web/API/Element/scrollIntoView)方法会滚动元素的父容器，使被调用`scrollIntoView()`的元素对用户可见。
+
+```javascript
+// 元素的顶端将和其所在滚动区的可视区域的顶端对齐
+const scrollToTop = (element) =>
+  element.scrollIntoView({ behavior: "smooth", block: "start" })。
+
+// 元素的底端将和其所在滚动区的可视区域的底端对齐
+const scrollToBottom = (element) =>
+  element.scrollIntoView({ behavior: "smooth", block: "end" })。
+```
 
 ### 阻止点击默认行为
 
@@ -351,6 +364,12 @@ console.log(str);
 
 Math.random() 生成 [0, 1) 的数，也就是 0.123312、0.982931 之类的，然后调用 number 的 toString 方法将其转换成 36 进制的，按照 MDN 的说法，36 进制的转换应该是包含了字母 a~z 和 数字 0~9 的，因为这样生成的是 0.89kjna21sa 类似这样的，所以要截取一下小数部分，即从索引 2 开始截取 10 个字符就是我们想要的随机字符串了
 
+### 生成随机颜色
+
+```js
+const generateRandomHexColor = () =>
+  `#${Math.floor(Math.random() * 0xffffff) .toString(16)}`;
+```
 ### 获取当前调用栈
 
 ```js

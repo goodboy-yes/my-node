@@ -203,6 +203,7 @@ if (dog instanceof Dog) {
 在 TypeScript 中，一个必定抛出错误的函数，它的返回值就是 `never`。
 
 **使用场景**
+
 我们可以其他类型不可能被复制给 never 类型来确保在 if...else 或者 swicth case 语句中，所有可能的(类型)分支都被穷举到。
 
 ```javascript
@@ -1183,7 +1184,17 @@ class Dog implements DogInterface & CatInterface {
 }
 ```
 
-适用于对象合并场景，如下将声明一个函数，将两个对象合并成一个对象并返回：
+只有对于对象类型，& 才表现为合并的情况，而对于原始类型以及联合类型，& 就真的表现为交集。
+
+```js
+// 'a'
+type _T1 = ('a' | 'b') & ('a' | 'd' | 'e' | 'f')
+
+// never，因为 string 和 number 哪有交集啊
+type _T1 = string & number;
+```
+
+& 适用于对象合并场景，如下将声明一个函数，将两个对象合并成一个对象并返回：
 
 ```tsx
 function extend<T , U>(first: T, second: U) : T & U {
@@ -1652,6 +1663,20 @@ function example(foo: any){
 ```
 
 在使用类型保护时，TS 会进一步缩小变量的类型。例子中，将类型从 any 缩小至了 string。类型保护的作用域仅仅在 if 后的块级作用域中生效
+
+除了多声明一个类型守卫以外，你也可以直接在 example 函数中判断
+```js
+function example(foo: any){
+  if(typeof foo === "string"){
+      // 如下代码编译时会出错，运行时也会出错，因为 foo 是 string 不存在toExponential方法
+      console.log(foo.toExponential(2));
+  }
+  // 编译不会出错，但是运行时出错
+  console.log(foo.toExponential(2));
+}
+```
+
+以上的两种方式其实都是“类型守卫”的体现，区别只不过在当我们将判断逻辑提取到这个函数的外部时，需要使用 is 关键字来显式的提供类型信息。
 
 ### **in**
 
