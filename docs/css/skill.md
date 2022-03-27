@@ -205,3 +205,23 @@ div {
   margin: auto;
 }
 ```
+
+## css 写出一个三角形角标
+
+```css
+/* 等腰 */
+div {
+  width: 0;
+  height: 0;
+  border: 4px solid transparent;
+  border-bottom-color: red;
+}
+
+/* 等边 */
+div {
+  width: 0;
+  height: 0;
+  border: 4px solid transparent;
+  border-bottom: 8px solid red;
+}
+```
