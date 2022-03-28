@@ -78,6 +78,7 @@ export default defineUserConfig<DefaultThemeOptions>({
           "/vue3/difference-from-vue2",
           "/vue3/vite",
           "/vue3/practice",
+          "/vue3/style-guide",
         ],
       },
       {
