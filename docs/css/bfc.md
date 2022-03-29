@@ -40,13 +40,13 @@ Formatting context(格式化上下文) 是 W3C CSS2.1 规范中的一个概念�
 
 - html 根元素是一个 BFC
 
-- float 属性取值不是“none”
+- float 属性取值为“left”，“right”（除了“none”）
 
-- overflow 属性取值不是“visible”
+- overflow 属性取值为“hidden”，“scroll”，“auto”（除了“visible”）
 
-- display 的值为 “flex”，“inline-flex”，“table-cell”，“table-caption”，或者 “inline-block”中的任何一个
+- display 的值为 “flex”，“inline-flex”，“inline-table”，“table”，“table-cell”，“table-caption”，或者 “inline-block”中的任何一个
 
-- position 的值不为 “static” 或 “relative”中的任何一个
+- position 的值不为 “absolute” 或 “fixed”中的任何一个
 
 ## BFC 的布局规则
 
