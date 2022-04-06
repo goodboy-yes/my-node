@@ -73,7 +73,6 @@ export default function Gallery() {
 #### 避免重新创建初始状态
 
 传递给`useState`的初始状态仅用于初始渲染。对于下一次渲染，此参数将被忽略。如果创建初始状态的成本很高，那么在每次渲染时都创建并丢弃它是一种浪费。为避免这种情况，您可以将初始化函数传递给 `useState`。 `React` 只会在初始化期间运行它来计算初始状态，但不会在重新渲染时运行它。
-f
 
 ```javascript
 function createInitialTodos() {
@@ -715,8 +714,6 @@ export default function Counter() {
 
 下面例子中 React 中存储的状态可能在定时器运行时已更改，但它是使用**用户与其交互时的状态快照**来安排的！
 
-
-
 ```javascript
 export default function Counter() {
   const [number, setNumber] = useState(0);
@@ -771,25 +768,23 @@ export default function Form() {
 }
 ```
 
-
-
 可使用`useRef` 来保证任何时候访问的变量都是最新的
 
 ```javascript
-const [count, setCount] = useState(0)
+const [count, setCount] = useState(0);
 
 // 通过 ref 来记忆最新的 count
-const countRef = useRef(count)
-countRef.current = count
+const countRef = useRef(count);
+countRef.current = count;
 
 useEffect(() => {
   const timer = setTimeout(() => {
-    console.log(countRef.current)
-  }, 3000)
+    console.log(countRef.current);
+  }, 3000);
   return () => {
-    clearTimeout(timer)
-  }
-}, [])
+    clearTimeout(timer);
+  };
+}, []);
 ```
 
 ### 批量状态更新

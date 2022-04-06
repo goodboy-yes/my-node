@@ -128,6 +128,10 @@ export default defineUserConfig<DefaultThemeOptions>({
         text: "Docker",
         link: "/docker",
       },
+      {
+        text: "收藏",
+        link: "/collection/index",
+      },
     ],
   },
 });
