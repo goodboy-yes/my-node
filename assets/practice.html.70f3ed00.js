@@ -1,1 +1,0 @@
-const e={key:"v-0b9d3c15",path:"/vue3/practice.html",title:"\u5B9E\u8DF5",lang:"zh-CN",frontmatter:{},excerpt:"",headers:[{level:2,title:"\u62D6\u62FD\u6307\u4EE4",slug:"\u62D6\u62FD\u6307\u4EE4",children:[]}],git:{updatedTime:1648569883e3,contributors:[{name:"goodboy-yes",email:"gkckx37@163.com",commits:1}]},filePathRelative:"vue3/practice.md"};export{e as data};
