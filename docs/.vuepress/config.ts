@@ -130,7 +130,7 @@ export default defineUserConfig<DefaultThemeOptions>({
       },
       {
         text: "收藏",
-        link: "/collection/index",
+        link: "/collection",
       },
     ],
   },

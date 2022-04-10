@@ -25,13 +25,22 @@ export default function Profile() {
 
 ## Hook
 
-在 React 中，useState 以及任何其他以“ use,”开头的函数都称为 Hook。
+在 React 中，useState 以及任何其他以`use`开头的函数都称为 Hook。
 
-Hooks 是特殊的函数，仅在 React 渲染时可用。它们让你“连接”到不同的 React 特性。
+Hook 是 React 16.8 的新增特性，是一些可以让你在函数组件里“钩入” React state 及生命周期等特性的函数。Hook 不能在 class 组件中使用 —— 这使得你不使用 class 也能使用 React。
+
+React 内置了一些像 useState 这样的 Hook。你也可以创建你自己的 Hook 来**复用不同组件之间的状态逻辑**。
 
 > 调用 Hooks 仅在组件或另一个 Hook 的顶层有效，不能在条件、循环或其他嵌套函数中调用 Hook
 
-### useState
+### Hook 使用规则
+
+Hook 就是 JavaScript 函数，但是使用它们会有两个额外的规则：
+
+- 只能在函数最外层调用 Hook。不要在循环、条件判断或者子函数中调用，确保总是在 React 函数的最顶层以及任何 return 之前调用
+- 只能在 React 的函数组件和自定义 Hook 中调用 Hook。不要在其他 JavaScript 函数中调用。
+
+### State Hook
 
 但组件里的数据改变时，要使用新数据更新组件，需要做两件事：
 
@@ -43,7 +52,7 @@ Hooks 是特殊的函数，仅在 React 渲染时可用。它们让你“连接�
 - 常规变量不会在渲染之间持续存在。当 React 第二次渲染这个组件时，它会从头开始渲染——它不考虑对常规变量的任何更改。
 - 对常规变量的更改不会触发渲染。React 没有意识到它需要使用新数据再次渲染组件。
 
-而使用 `useState` 可以保持呈现之间的数据，并提供一个状态设置函数，用于更新变量并触发 React 再次渲染组件
+而使用 `useState` 可以保持呈现之间的数据，并提供一个状态设置函数，用于更新变量并触发 React 再次渲染组件，一般来说，在函数退出后变量就会”消失”，而 state 中的变量会被 React 保留。
 
 ```javascript
 import { useState } from "react";
@@ -111,6 +120,101 @@ export default function App() {
   );
 }
 ```
+
+### Effect Hook
+
+`Effect Hook` 可以让你在函数组件中执行副作用操作，数据获取，设置订阅以及手动更改 React 组件中的 DOM 都属于副作用。
+
+默认情况下，`Effect Hook` 在第一次渲染之后和每次更新之后都会执行，React 保证了每次运行 effect 的同时，DOM 都已经更新完毕。
+
+> 使用 useEffect 调度的 effect 不会阻塞浏览器更新屏幕，这让你的应用看起来响应更快。大多数情况下，effect 不需要同步地执行。
+
+```jsx
+import React, { useState, useEffect } from "react";
+
+function Example() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    document.title = `You clicked ${count} times`;
+  });
+
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>Click me</button>
+    </div>
+  );
+}
+```
+
+可以在 `useEffect` 中返回一个函数，React 会在组件卸载的时候执行此函数， React 会在执行当前 effect 之前对上一个 effect 进行清除
+
+可用于清除订阅
+
+```jsx
+import React, { useState, useEffect } from "react";
+
+function FriendStatus(props) {
+  const [isOnline, setIsOnline] = useState(null);
+
+  useEffect(() => {
+    function handleStatusChange(status) {
+      setIsOnline(status.isOnline);
+    }
+    ChatAPI.subscribeToFriendStatus(props.friend.id, handleStatusChange);
+    // Specify how to clean up after this effect:
+    return function cleanup() {
+      ChatAPI.unsubscribeFromFriendStatus(props.friend.id, handleStatusChange);
+    };
+  });
+
+  if (isOnline === null) {
+    return "Loading...";
+  }
+  return isOnline ? "Online" : "Offline";
+}
+```
+
+**使用 Effect 的提示**
+
+使用 Hook 其中一个目的就是要解决 class 中生命周期函数经常包含不相关的逻辑，但又把相关逻辑分离到了几个不同方法中的问题。我们可以使用多个 Effect 实现关注点分离，按照代码的用途分离他们
+
+```jsx
+function FriendStatusWithCounter(props) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    document.title = `You clicked ${count} times`;
+  });
+
+  const [isOnline, setIsOnline] = useState(null);
+  useEffect(() => {
+    function handleStatusChange(status) {
+      setIsOnline(status.isOnline);
+    }
+
+    ChatAPI.subscribeToFriendStatus(props.friend.id, handleStatusChange);
+    return () => {
+      ChatAPI.unsubscribeFromFriendStatus(props.friend.id, handleStatusChange);
+    };
+  });
+  // ...
+}
+```
+
+每次渲染后都执行清理或者执行 effect 可能会导致性能问题，我们可以通知 React 跳过对 effect 的调用，只要传递数组作为 `useEffect` 的第二个可选参数即可：
+
+```jsx
+useEffect(() => {
+  document.title = `You clicked ${count} times`;
+}, [count]); // 仅在 count 更改时更新
+```
+
+要使用此优化方式，请确保数组中包含了所有外部作用域中会随时间变化并且在 effect 中使用的变量，否则你的代码会引用到先前渲染中的旧变量。
+
+如果想执行只运行一次的 effect（仅在组件挂载和卸载时执行），可以传递一个空数组（[]）作为第二个参数。这就告诉 React effect 不依赖于 props 或 state 中的任何值，所以它永远都不需要重复执行。
+
+如果你传入了一个空数组（[]），effect 内部的 props 和 state 就会一直拥有其初始值，React 会等待浏览器完成画面渲染之后才会延迟调用 useEffect
 
 ### useRef
 
@@ -260,6 +364,38 @@ listRef.current.lastChild.scrollIntoView();
 `flushSync`将指示 React 在包裹在其中的代码执行后立即同步更新 DOM 。结果，当您尝试滚动到最后一个 todo 时，它已经在 DOM 中
 
 **我们应该避免用 ref 更改由 React 管理的 DOM 节点**，如果确实修改了 React 管理的 DOM 节点，请修改 React 没有理由更新的部分。
+
+### 自定义 Hook
+
+自定义 Hook 是一种自然遵循 Hook 设计的约定，而并不是 React 的特性。
+
+- 自定义 Hook 必须以 “use” 开头（是一个约定）
+- 自定义 Hook 是一种重用状态逻辑的机制，所以每次使用自定义 Hook 时，其中的所有 state 和副作用都是完全隔离的。
+
+例如 `useReducer` 的一个简单实现
+
+```jsx
+function useReducer(reducer, initialState) {
+  const [state, setState] = useState(initialState);
+
+  function dispatch(action) {
+    const nextState = reducer(state, action);
+    setState(nextState);
+  }
+  return [state, dispatch];
+}
+
+// 使用
+function Todos() {
+  const [todos, dispatch] = useReducer(todosReducer, []);
+
+  function handleAddClick(text) {
+    dispatch({ type: "add", text });
+  }
+
+  // ...
+}
+```
 
 ## JSX
 
@@ -1030,6 +1166,7 @@ setArtists(nextArtists);
 ```
 
 **反转或排序**
+
 `reverse()`和`sort()`方法会改变原始数组，需要先复制数组，然后对其进行更改。
 
 ```javascript
@@ -1091,7 +1228,7 @@ function Message({ messageColor }) {
 ```javascript
 function Message({ messageColor }) {
   const color = messageColor;
-
+}
 ```
 
 ### 受控和非受控组件
@@ -1304,10 +1441,20 @@ function tasksReducer(tasks, action) {
 
 **使用 reducer：**
 
+`useReducerHook` 有两个参数：
+
+- 减速器功能
+- 初始状态
+
 ```javascript
 import { useReducer } from "react";
 import tasksReducer from "./tasksReducer.js";
-const [tasks, dispatch] = useReducer(tasksReducer, initialTasks);
+
+const initialTasks = [
+  { id: 0, text: 'Visit Kafka Museum', done: true },
+  { id: 1, text: 'Watch a puppet show', done: false },
+  { id: 2, text: 'Lennon Wall pic', done: false }
+];
 
 export default function TaskBoard() {
   const [tasks, dispatch] = useReducer(
@@ -1504,11 +1651,11 @@ function tasksReducer(tasks, action) {
 ```javascript
 // AddTask.js
 import { useState, useContext } from "react";
-import { TasksDispatchContext } from "./TasksContext.js";
+import { useTasksDispatch } from "./TasksContext.js";
 
 export default function AddTask({ onAddTask }) {
   const [text, setText] = useState("");
-  const dispatch = useContext(TasksDispatchContext);
+  const dispatch = useTasksDispatch();
   return <>...</>;
 }
 
