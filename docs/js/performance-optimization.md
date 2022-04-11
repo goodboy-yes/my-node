@@ -1,5 +1,39 @@
 # 性能优化
 
+## 方向
+
+- 加载时优化：预加载、缓存、网络层、页面解析、静态资源、
+
+- 运行时优化：避免强制同步布局、长列表优化、避免 js 执行时间过长、并行计算-service worker、Composite 分层绘制、滚动事件性能优化、Passive event listeners、动画
+
+### 加载时优化
+
+所以我们可以优先加载首屏资源，非首屏资源按需加载或懒加载，以加快首屏渲染速度。
+
+我们可以从这个过程来挖掘优化点：`交给 DNS 域名解析` -> `找到对应的 IP 地址` -> `然后进行 TCP 连接` -> `浏览器发送 HTTP 请求` -> `服务器接收请求` -> `服务器处理请求并返回 HTTP 报文` -> `浏览器接收并解析渲染页面`
+
+通过缩短请求时间，从而去加快网站的访问速度，提升性能。
+
+这个过程中可以提升性能的优化的点：
+
+- DNS 解析优化，浏览器访问 DNS 的时间就可以缩短
+- 使用 HTTP2
+- 减少 HTTP 请求数量
+- 减少 http 请求大小
+- 服务器端渲染
+- 静态资源使用 CDN
+- 资源缓存，不重复加载相同的资源
+
+### 运行时优化
+
+- 减少重绘与重排
+- 避免页面卡顿
+- 长列表优化
+- 滚动事件性能优化
+- 使用 Web Workers
+
+![](https://mmbiz.qpic.cn/mmbiz_png/dlev5LqXTnXqgibDAFaicctjibbnedSOg59e0yNkiaOQFoBOv84yG5nMDdkRRDIh14RUJjWkS48byCg4NpXp6Licnog/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1)
+
 ## 缓存
 
 **Web 缓存种类：** 数据库缓存，CDN 缓存，代理服务器缓存，浏览器缓存
