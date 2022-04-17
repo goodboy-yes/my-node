@@ -46,7 +46,7 @@ Formatting context(格式化上下文) 是 W3C CSS2.1 规范中的一个概念�
 
 - display 的值为 “flex”，“inline-flex”，“inline-table”，“table”，“table-cell”，“table-caption”，或者 “inline-block”中的任何一个
 
-- position 的值不为 “absolute” 或 “fixed”中的任何一个
+- position 的值为 “absolute” 或 “fixed”中的任何一个
 
 ## BFC 的布局规则
 

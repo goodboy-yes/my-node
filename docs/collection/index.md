@@ -19,3 +19,7 @@
 [《WebGL 教程》](http://www.webgl3d.cn/WebGL/)
 
 [《You-need-to-know-css》](https://lhammer.cn/You-need-to-know-css/#/zh-cn/introduce?v=1)
+
+[《免费编程书籍》](https://github.com/EbookFoundation/free-programming-books)：收集编程书籍资源类的开源项目
+
+[《带你入门前端工程》](https://github.com/woai3c/introduction-to-front-end-engineering)：前端工程化知识总结
