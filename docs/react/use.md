@@ -63,7 +63,7 @@ function sum(a, b) {
 
 ### State & 生命周期
 
-- 每次组件更新时 render 方法都会被调用，但只要在相同的 DOM 节点中渲染 <Clock /> ，就仅有一个 Clock 组件的 class 实例被创建使用。
+- 每次组件更新时 render 方法都会被调用，但只要在相同的 DOM 节点中渲染 `<Clock />` ，就仅有一个 Clock 组件的 class 实例被创建使用。
 - this.props 和 this.state 是 React 本身设置的，且都拥有特殊的含义，我们可以向 class 中随意添加不参与数据流（比如计时器 ID）的额外字段。
 - componentDidMount() 方法会在组件已经被渲染到 DOM 中后运行
 
