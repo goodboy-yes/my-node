@@ -1,0 +1,1 @@
+const t={key:"v-ca2d6548",path:"/html/knowledge-points.html",title:"\u77E5\u8BC6\u70B9",lang:"zh-CN",frontmatter:{},excerpt:"",headers:[],git:{updatedTime:1651836285e3,contributors:[{name:"guokc",email:"guokc@tsintergy.com",commits:1}]},filePathRelative:"html/knowledge-points.md"};export{t as data};
