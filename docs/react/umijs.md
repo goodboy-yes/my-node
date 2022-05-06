@@ -1,4 +1,4 @@
-# umijs.md
+# umijs
 
 ## 配置
 
@@ -52,7 +52,21 @@ export default { c: 'local' };
   c: 'local',
 }
 ```
+### 运行时配置
 
+**配置方式**
+
+运行时配置和配置的区别是他跑在浏览器端，基于此，我们可以在这里写函数、jsx、import 浏览器端依赖等等，注意不要引入 node 依赖。
+
+约定 `src/app.tsx` 为运行时配置。
+
+[配置项](https://umijs.org/zh-CN/docs/runtime-config)
+
+**用法**
+
+- 渲染之前做权限校验
+- 修改路由
+- 在初始加载和路由切换时做埋点统计、设置标题
 ## 环境变量
 
 ### 设置环境变量
@@ -76,3 +90,163 @@ BABEL_CACHE=none
 ```
 
 [环境变量列表](https://umijs.org/zh-CN/docs/env-variables#umi_env)
+
+## HTML 模板
+
+新建 `src/pages/document.ejs`，umi 约定如果这个文件存在，会作为默认模板
+
+模板里可通过 context 来获取到 umi 提供的变量，context 包含：
+- route，路由信息，需要打包出多个静态 HTML 时（即配置了 exportStatic 时）有效
+- config，用户配置信息
+比如：
+
+```html
+<link rel="icon" type="image/x-icon" href="<%= context.config.publicPath %>favicon.png" />
+```
+## 使用 CSS
+
+### 全局样式
+
+Umi 中约定 `src/global.css` 为全局样式，如果存在此文件，会被自动引入到入口文件最前面。
+
+比如用于覆盖样式
+
+```css
+.ant-select-selection {
+  max-height: 51px;
+  overflow: auto;
+}
+```
+### CSS Modules
+
+Umi 会自动识别 CSS Modules 的使用，你把他当做 CSS Modules 用时才是 CSS Modules
+
+### CSS 预处理器
+
+Umi 内置支持 less，不支持 sass 和 stylus，但如果有需求，可以通过 chainWebpack 配置或者 umi 插件的形式支持。
+
+## 插件
+
+### [@umijs/plugin-request](https://umijs.org/zh-CN/plugins/plugin-request)
+
+`@umijs/plugin-request` 基于 `umi-request` 和 `ahooks` 的 `useRequest` 提供了一套统一的网络请求和错误处理方案。
+
+#### 配置
+
+**运行时配置**
+
+在 src/app.ts 中你可以配置一些运行时的配置项来实现部分自定义需求
+
+```js
+import { RequestConfig } from 'umi';
+
+export const request: RequestConfig = {
+  timeout: 1000,
+  errorConfig: {},
+  middlewares: [],
+  requestInterceptors: [],
+  responseInterceptors: [],
+};
+```
+
+该配置返回一个对象。除了 `errorConfig` 和 `middlewares` 以外其它配置都是直接透传 `umi-request` 的全局配置。
+#### API
+
+**request**
+
+通过 `import { request } from 'umi';` 你可以使用内置的请求方法。 `request` 接收两个参数，第一个参数是 url，第二个参数是请求的 options。options 具体格式参考 [`umi-request`](https://github.com/umijs/umi-request)。
+
+```js
+request('/api/user', {
+  params: {
+    name: 1,
+  }
+})
+```
+
+**useRequest**
+
+该插件内置了 `@ahooksjs/use-request`，你可以在组件内通过该 Hook 简单便捷的消费数据。
+
+```jsx
+import { useRequest } from 'umi';
+
+export default () => {
+  const { data, error, loading } = useRequest(() => {
+    return services.getUserList('/api/test');
+  });
+  if (loading) {
+    return <div>loading...</div>;
+  }
+  if (error) {
+    return <div>{error.message}</div>;
+  }
+  return <div>{data.name}</div>;
+};
+```
+
+更多配置你可以参考 [@ahooksjs/use-request](https://ahooks.js.org/zh-CN/hooks/use-request/index) 的文档，相比 @umijs/use-request 本身有如下两点差异：
+
+- 按照接口请求规范内置了 formatResult: res => res?.data 让你可以更方便的使用数据，当然你也可以自己配置 formatResult 来覆盖内置的这个逻辑。
+- 按照接口错误规范统一了错误处理逻辑。
+
+### [@umijs/plugin-initial-state](https://umijs.org/zh-CN/plugins/plugin-initial-state)
+
+约定一个地方生产和消费初始化数据。
+
+#### 启动
+
+有 `src/app.ts` 并且导出 `getInitialState` 方法时启用。本插件不可直接使用，必须搭配 `@umijs/plugin-model` 一起使用。
+
+#### 配置
+
+**getInitialState**
+
+该配置是一个 async 的 function。会在整个应用最开始执行，返回值会作为全局共享的数据。Layout 插件、Access 插件以及用户都可以通过 useModel('@@initialState') 直接获取到这份数据。
+
+```js
+// src/app.ts
+export async function getInitialState() {
+  const data = await fetchXXX();
+  return data;
+}
+```
+
+#### API
+
+**useModel**
+
+获取初始值
+
+```js
+import { useModel } from 'umi';
+
+export default () => {
+  const { initialState, loading, error, refresh, setInitialState } = useModel('@@initialState');
+  return <>{initialState}</>
+};
+```
+
+## API
+
+### 路由
+
+#### withRouter
+
+高阶组件，可以通过 withRouter 获取到 history、location、match 对象
+
+```js
+import { withRouter } from 'umi';
+
+export default withRouter(({ history, location, match }) => {
+  return (
+    <div>
+      <ul>
+        <li>history: {history.action}</li>
+        <li>location: {location.pathname}</li>
+        <li>match: {`${match.isExact}`}</li>
+      </ul>
+    </div>
+  );
+});
+```
