@@ -1,1 +1,0 @@
-const t={key:"v-21cfa90a",path:"/git/commit-amend.html",title:"git commit --amend",lang:"zh-CN",frontmatter:{},excerpt:"",headers:[],git:{updatedTime:1651836285e3,contributors:[{name:"guokc",email:"guokc@tsintergy.com",commits:1}]},filePathRelative:"git/commit-amend.md"};export{t as data};
