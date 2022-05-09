@@ -88,6 +88,8 @@ export default defineUserConfig<DefaultThemeOptions>({
           "/React/react-router",
           "/React/umijs",
           "/React/code-standard",
+          "/React/redux",
+          "/React/dva",
         ],
         link: "/react",
       },

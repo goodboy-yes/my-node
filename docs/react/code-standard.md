@@ -661,3 +661,125 @@ const unitMap: Map<string, Record<id | name, string>> = new Map(
 // 根据id获取电⼚名，不⽤每次都⽤find遍历
 const { name } = unitMap.get(unitID);
 ```
+
+### 定义断⾔函数
+
+⽐较复杂的判断，可以考虑不夹杂在主流程代码中，单独抽出⼀个断⾔函数， `(conditions) => boolean` ，增加代码的可读性可维护性。
+
+使⽤ `includes` 简化多个值⽐较相等或不相等
+
+```js
+// 判断相等
+if (type === 'a' || type === 'b' || type === 'c')
+// 改为
+if (['a', 'b', 'c'].includes(type))
+
+// 判断不相等
+if (!(type === 'a' || type === 'b' || type === 'c'))
+if (type !== 'a' && type !== 'b' && type !== 'c')
+// 改为
+if (!['a', 'b', 'c'].includes(type))
+```
+
+### 提前 return 减少嵌套层级
+
+```js
+const meanPrice = useMemo(() => {
+  if (!sumEle) return 0;
+    ...
+  }, []);
+```
+
+### 巧⽤柯⾥化函数
+
+巧⽤柯⾥化函数: 拆分传参或缓存部分内容
+
+```js
+// 同时处理四份数据, 缓存公共的内容
+const { totalIncome, netIncome, onlineEle, mltEle } = useMemo(() => {
+// 第⼀次调⽤，处理公共的循环
+const middleFn = getDataWithTicks(monthList, runDates);
+// 第⼆次调⽤，处理个性内容
+return {
+  totalIncome: middleFn('totalIncome'),
+  netIncome: middleFn('netIncome'),
+  onlineEle: middleFn('onlineEle'),
+  mltEle: middleFn('mltEle'),
+} as const;
+}, [monthList, runDates]);
+```
+
+## Antd 使⽤相关
+
+### 使⽤⾮受控组件
+
+除了⾃定义组件时，⼤多数时候推荐使⽤⾮受控组件，让组件⾃⾏运⾏，我们**只关⼼最初的初始化数据，以及触发事件等改变的回调函数和返回的最新值**。最典型的就是 `Table` 和 `Form` 组件，及其表单输⼊控件 `Input` `DatePicker` `Checkbox` 等。
+
+### 该使⽤ Form 统⼀操作
+
+#### 单个控件
+
+表单输⼊控件除了确定是唯⼀⼀个时，可以直接操作控件。此外都应该使⽤ Form 来统⼀操作。
+
+![](./images/13.png)
+
+#### 多个控件
+
+`Form.useForm()`可创建 form 控制实例，可以⽤于获取或设置表单数据。
+
+- `getFieldValue` ⽤于获取当前表单的数据；
+- `setFieldsValue` `setFields` ⽤于设置更新数据，也⽤于初始化回显数据；
+- `resetFields`用于重置；
+- `submit`用于提交
+
+多个控件应该由 Form 统⼀接管数据初始化( `form.setFieldsValue` )，回调事件 (`onValuesChange` `onFinish`)，⽽不应该直接操作输⼊控件，冗余且不便维护。
+
+在使⽤ FormInstance 后，表单的初始化可以动态进⾏，⼀般不再使⽤ `Form.initialValues` 以及 `Form.Item.initialValue` 的静态初始化
+
+![](./images/24.png)
+![](./images/25.png)
+![](./images/26.png)
+
+#### 表单响应
+
+Form 的两种⽤法: 实时响应与提交响应。
+
+第⼀种，当我们修改某⼀个输⼊控件时，⽴即做出相应，⽐如直接请求新数据，这种应该使⽤ `onValuesChange` 回调函数；
+
+第⼆种，我们可以修改多个输⼊控件，当⽐如点击提交按钮 `<Button htmlType='submit'>`提交`</Button>` 时，才发出请求，这种"带缓存的状态"，使⽤ `onFinish` 。
+
+![](./images/27.png)
+![](./images/28.png)
+
+### 模态窗 Modal 自己维护状态
+
+模态窗 Modal 控制开关的状态不是调⽤的⽗组件维护的，⽽是⼦组件⾃⼰维护并通过 `useImperativeHandle` 暴露⼀个开关⽅法，这样的好处是数据状态更加清晰，并其复⽤同⼀个模态窗更⽅便；
+
+缺点是写法麻烦，并且 `Modal` 组件在⽗组件初始化时就渲染执⾏了 `useMount` 并发出请求，⽽不是打开模态窗才开始渲染(可以考虑在⼦组件内再套⼀层判断)
+
+```jsx
+const Index: FC<{
+  mRef: MutableRefObject<{ showModal: (flag: boolean) => void } | null>,
+}> = ({ mRef }) => {
+  const [visible, { set: setVisible }] = useBoolean(false);
+
+  /* 对外暴露接口 */
+  useImperativeHandle(mRef, () => ({
+    showModal: (flag: boolean = true) => {
+      setVisible(flag);
+    },
+  }));
+
+  return <>{visible && <RealModal />}</>;
+};
+```
+
+### disabled 和 loading
+
+Button 或输⼊表单控件，应关注其 disabled 和 loading 属性，尤其是 Button，防⽌重复点击重复请求。
+
+### Select 使⽤ options 配置⼦项
+
+Select 使⽤推荐 options 来配置⼦项，⽽不是遍历` <Select.Option>` ，这样更好维护。
+
+![](./images/19.png)

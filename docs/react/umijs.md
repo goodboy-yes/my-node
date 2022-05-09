@@ -2,19 +2,18 @@
 
 ## 配置
 
-Umi 在 `.umirc.ts`或 `config/config.ts` 中配置项目和插件，推荐两种配置方式二选一，**`.umirc.ts`
- 优先级更高**
+Umi 在  `.umirc.ts`或  `config/config.ts`  中配置项目和插件，推荐两种配置方式二选一，**`.umirc.ts`
+  优先级更高**
 
 ```js
-import { defineConfig } from 'umi';
+import { defineConfig } from "umi";
 
 export default defineConfig({
-  routes: [
-    { path: '/', component: '@/pages/index' },
-  ],
+  routes: [{ path: "/", component: "@/pages/index" }],
 });
 ```
-如果项目的配置不复杂，推荐在 `.umirc.ts`中写配置； 如果项目的配置比较复杂，可以将配置写在 `config/config.ts`中，并把配置的一部分拆分出去，比如路由配置可以拆分成单独的 `routes.ts`
+
+如果项目的配置不复杂，推荐在  `.umirc.ts`中写配置； 如果项目的配置比较复杂，可以将配置写在  `config/config.ts`中，并把配置的一部分拆分出去，比如路由配置可以拆分成单独的  `routes.ts`
 
 ### 本地临时配置
 
@@ -36,7 +35,9 @@ export default { b: 'cloud', c: 'cloud' };
 // .umirc.local.js 或者 config/config.local.js
 export default { c: 'local' };
 ```
+
 不指定 UMI_ENV 时，拿到的配置是：
+
 ```js
 {
   a: 1,
@@ -44,7 +45,9 @@ export default { c: 'local' };
   c: 'local',
 }
 ```
+
 指定 UMI_ENV=cloud 时，拿到的配置是：
+
 ```js
 {
   a: 1,
@@ -52,6 +55,7 @@ export default { c: 'local' };
   c: 'local',
 }
 ```
+
 ### 运行时配置
 
 **配置方式**
@@ -67,6 +71,7 @@ export default { c: 'local' };
 - 渲染之前做权限校验
 - 修改路由
 - 在初始加载和路由切换时做埋点统计、设置标题
+
 ## 环境变量
 
 ### 设置环境变量
@@ -84,9 +89,10 @@ $ set PORT=3000&&umi dev
 **在 .env 文件中定义**
 
 Umi 中约定根目录下的 .env 为环境变量配置文件。
+
 ```js
-PORT=3000
-BABEL_CACHE=none
+PORT = 3000;
+BABEL_CACHE = none;
 ```
 
 [环境变量列表](https://umijs.org/zh-CN/docs/env-variables#umi_env)
@@ -96,13 +102,19 @@ BABEL_CACHE=none
 新建 `src/pages/document.ejs`，umi 约定如果这个文件存在，会作为默认模板
 
 模板里可通过 context 来获取到 umi 提供的变量，context 包含：
+
 - route，路由信息，需要打包出多个静态 HTML 时（即配置了 exportStatic 时）有效
 - config，用户配置信息
-比如：
+  比如：
 
 ```html
-<link rel="icon" type="image/x-icon" href="<%= context.config.publicPath %>favicon.png" />
+<link
+  rel="icon"
+  type="image/x-icon"
+  href="<%= context.config.publicPath %>favicon.png"
+/>
 ```
+
 ## 使用 CSS
 
 ### 全局样式
@@ -117,6 +129,7 @@ Umi 中约定 `src/global.css` 为全局样式，如果存在此文件，会被�
   overflow: auto;
 }
 ```
+
 ### CSS Modules
 
 Umi 会自动识别 CSS Modules 的使用，你把他当做 CSS Modules 用时才是 CSS Modules
@@ -138,7 +151,7 @@ Umi 内置支持 less，不支持 sass 和 stylus，但如果有需求，可以�
 在 src/app.ts 中你可以配置一些运行时的配置项来实现部分自定义需求
 
 ```js
-import { RequestConfig } from 'umi';
+import { RequestConfig } from "umi";
 
 export const request: RequestConfig = {
   timeout: 1000,
@@ -150,6 +163,7 @@ export const request: RequestConfig = {
 ```
 
 该配置返回一个对象。除了 `errorConfig` 和 `middlewares` 以外其它配置都是直接透传 `umi-request` 的全局配置。
+
 #### API
 
 **request**
@@ -157,11 +171,11 @@ export const request: RequestConfig = {
 通过 `import { request } from 'umi';` 你可以使用内置的请求方法。 `request` 接收两个参数，第一个参数是 url，第二个参数是请求的 options。options 具体格式参考 [`umi-request`](https://github.com/umijs/umi-request)。
 
 ```js
-request('/api/user', {
+request("/api/user", {
   params: {
     name: 1,
-  }
-})
+  },
+});
 ```
 
 **useRequest**
@@ -169,11 +183,11 @@ request('/api/user', {
 该插件内置了 `@ahooksjs/use-request`，你可以在组件内通过该 Hook 简单便捷的消费数据。
 
 ```jsx
-import { useRequest } from 'umi';
+import { useRequest } from "umi";
 
 export default () => {
   const { data, error, loading } = useRequest(() => {
-    return services.getUserList('/api/test');
+    return services.getUserList("/api/test");
   });
   if (loading) {
     return <div>loading...</div>;
@@ -219,12 +233,71 @@ export async function getInitialState() {
 获取初始值
 
 ```js
-import { useModel } from 'umi';
+import { useModel } from "umi";
 
 export default () => {
-  const { initialState, loading, error, refresh, setInitialState } = useModel('@@initialState');
-  return <>{initialState}</>
+  const { initialState, loading, error, refresh, setInitialState } =
+    useModel("@@initialState");
+  return <>{initialState}</>;
 };
+```
+
+### [@umijs/plugin-dva](https://umijs.org/zh-CN/plugins/plugin-dva)
+
+#### 启动
+
+配置开启
+
+```js
+export default {
+  dva: {
+    hmr: false,
+  },
+};
+```
+
+#### 介绍
+
+包含以下功能，
+
+- 内置 dva，默认版本是 ^2.6.0-beta.20，如果项目中有依赖，会优先使用项目中依赖的版本。
+- 约定式的 model 组织方式，不用手动注册 model
+- 文件名即 namespace，model 内如果没有声明 namespace，会以文件名作为 namespace
+- 内置 dva-loading，直接 connect loading 字段使用即可
+- 支持 immer，通过配置 immer 开启
+
+符合以下规则的文件会被认为是 model 文件，找到的文件，会做一次校验，校验通过后，才会被添加到最终到 dva model 列表
+
+- src/models 下的文件
+- src/pages 下，子目录中 models 目录下的文件
+- src/pages 下，所有 model.ts 文件(不区分任何字母大小写)
+
+#### 配置
+
+**运行时配置**
+
+通过 src/app.tsx 文件配置 dva 创建时的参数。
+
+```js
+import { createLogger } from "redux-logger";
+import { message } from "antd";
+
+export const dva = {
+  config: {
+    onAction: createLogger(),
+    onError(e: Error) {
+      message.error(e.message, 3);
+    },
+  },
+};
+```
+
+#### API
+
+常用方法可从 umi 直接 import
+
+```js
+import { connect } from "umi";
 ```
 
 ## API
@@ -236,7 +309,7 @@ export default () => {
 高阶组件，可以通过 withRouter 获取到 history、location、match 对象
 
 ```js
-import { withRouter } from 'umi';
+import { withRouter } from "umi";
 
 export default withRouter(({ history, location, match }) => {
   return (
