@@ -575,6 +575,41 @@ const {
 
 ## Model 相关
 
+### 独立的 model.ts
+
+model 相关的内容，请单独写在 model.ts ⽂件，便于维护。
+
+并确保其类型声明和必要的注释，便于其他⼈使⽤
+
+![](./images/6.png)
+
+### 使用`createEvaModel`
+
+新项目使用`createEvaModel`，请注意查看，新版文档 👉[eva model](http://frontend.pages.tsintergy.com:8070/eva/)。
+
+### reducers 和 effects
+
+当需要封装⼀系列复杂的操作时，可以声明 reducers 和 effects 。
+
+### 保证状态最⼩化
+
+在保证 State 完整的同时，也要保证其最⼩化",不要滥⽤ State ，许多复杂场景的复杂度来源就是: 数据流不清晰, 定义了冗余的 State 。
+
+只有那些有必要的状态才存⼊ model，⽐如跨组件共享的状态，多处修改的状态
+
+### 确保更新的数据已初始化
+
+`model.actions.update`更新的数据一定是初始化时声明的变量，往里面添加新状态也能成功，但是维护起来非常迷惑。
+
+```js
+state: {
+  name: undefined,
+}
+
+// total是没有在state声明的
+Model.actions.update({ name: '集团侧', total: 1234 });
+```
+
 ## 其余代码优化
 
 ### 抽离配置代码

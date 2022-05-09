@@ -212,6 +212,7 @@ const test: Record<string, string> = {
 ### Pick & Omit
 
 **Pick**：主要作用是从一组属性中拿出某个属性，并将其返回，使用方法是`Pick<P, K>`
+
 ```javascript
 type Pick<T, K extends keyof T> = {
     [P in K]: T[P];
@@ -236,12 +237,15 @@ interface Person {
 type test = Omit<Person, 'age'> // type test = {name: string;}
 type test = Omit<Person, 'age'|'name'> // 去除多个
 ```
+
 重写原有字段的类型
+
 ```javascript
-type test = Omit<Person, 'age'> & {
-  age: string;
+type test = Omit<Person, "age"> & {
+  age: string,
 };
 ```
+
 ### Exclude & Extract
 
 **Exclude**：从一个联合类型中排除掉属于另一个联合类型的子集，使用形式是`Exclude<T, S>`，如果 T 中的属性在 S 不存在那么就会返回。
@@ -287,6 +291,7 @@ interface Person {
 }
 type test = Partial<Person> // {name?: string,age?: number}
 ```
+
 ### Required
 
 将类型中所有选项变为必选，去除所有？
@@ -298,3 +303,7 @@ interface Person {
 }
 type test = Person<Person> // {name: string,age: number}
 ```
+
+### NonNullable
+
+`NonNullable<Type>`会将 `null`和 `undefined`从 `Type` 中排除掉，由剩余类型组成一个新的类型
