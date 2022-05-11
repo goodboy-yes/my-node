@@ -90,6 +90,7 @@ export default defineUserConfig<DefaultThemeOptions>({
           "/React/code-standard",
           "/React/redux",
           "/React/dva",
+          "/React/ahooks",
         ],
         link: "/react",
       },

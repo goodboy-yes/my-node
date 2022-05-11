@@ -302,6 +302,59 @@ import { connect } from "umi";
 
 ## API
 
+### 基本 APi
+
+#### history
+
+可用于获取当前路由信息
+
+```js
+import { history } from "umi";
+
+// history 栈里的实体个数
+console.log(history.length);
+
+// 当前 history 跳转的 action，有 PUSH、REPLACE 和 POP 三种类型
+console.log(history.action);
+
+// location 对象，包含 pathname、search 和 hash
+console.log(history.location.pathname);
+console.log(history.location.search);
+console.log(history.location.hash);
+```
+
+可用于路由跳转
+
+```js
+import { history } from "umi";
+
+// 跳转到指定路由
+history.push("/list");
+
+// 带参数跳转到指定路由
+history.push("/list?a=b");
+history.push({
+  pathname: "/list",
+  query: {
+    a: "b",
+  },
+});
+
+// 跳转到上一个路由
+history.goBack();
+```
+
+也可用于路由监听
+
+```js
+import { history } from "umi";
+
+const unlisten = history.listen((location, action) => {
+  console.log(location.pathname);
+});
+unlisten();
+```
+
 ### 路由
 
 #### withRouter

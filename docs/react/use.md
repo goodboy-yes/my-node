@@ -219,8 +219,15 @@ React 内置了一些像 useState 这样的 Hook。你也可以创建你自己�
 
 Hook 就是 JavaScript 函数，但是使用它们会有两个额外的规则：
 
-- 只能在函数最外层调用 Hook。不要在循环、条件判断或者子函数中调用，确保总是在 React 函数的最顶层以及任何 return 之前调用
-- 只能在 React 的函数组件和自定义 Hook 中调用 Hook。不要在其他 JavaScript 函数中调用。
+#### 只能在函数最外层调用 Hook。
+
+不要在循环、条件判断或者子函数中调用，确保总是在 React 函数的最顶层以及任何 `return` 之前调用
+
+遵守这条规则，你就能确保 `Hook` 在每一次渲染中都按照同样的顺序被调用。这让 `React` 能够在多次的 `useState` 和 `useEffect` 调用之间保持 `hook` 状态的正确。只要 Hook 的调用顺序在多次渲染之间保持一致，React 就能正确地将内部 state 和对应的 Hook 进行关联
+
+#### 只能在 React 的函数组件和自定义 Hook 中调用 Hook。
+
+不要在其他 JavaScript 函数中调用。遵循此规则，确保组件的状态逻辑在代码中清晰可见。
 
 ### useState
 
