@@ -48,6 +48,26 @@ git reset --<参数> <id> //回退到指定提交
 git revert <commit_id>
 ```
 
+### revert 合并提交
+
+合并提交通常无法 `revert`，合并提交是两条分支的交集节点，而 git 不知道需要撤销的哪一条分支，需要添加参数 `-m` 指定主线分支，保留主线分支的代码，另一条则被撤销。
+
+-m 后面要跟一个 parent number 标识出"主线"，一般使用 1 保留主分支代码。
+
+```bash
+git revert -m 1 <commitHash>
+```
+
+在 `master` 分支 `revert` 合并提交后，然后切到 `feature` 分支修复好 `bug`，再合并到 `master` 分支时，会发现之前被 `revert` 的修改内容没有重新合并进来。
+
+因为使用 `revert` 后， `feature` 分支的 `commit` 还是会保留在 `master` 分支的记录中，当你再次合并进去时，`git` 判断有相同的 `commitHash`，就忽略了相关 `commit` 修改的内容。
+
+这时就需要 `revert` 掉之前 `revert` 的合并提交
+
+```bash
+git revert <之前revert合并提交的commitHash>
+```
+
 ## 区别
 
 - `git revert` 是用一次新的 commit 来回滚之前的 commit，`git reset` 是直接删除指定的 commit
