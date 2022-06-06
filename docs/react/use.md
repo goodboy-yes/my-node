@@ -57,6 +57,63 @@ function sum(a, b) {
 
 **所有 React 组件都必须像纯函数一样保护它们的 props 不被更改。**
 
+### Rendering code 和 Event handlers
+
+React 中有两个重要的概念：
+
+- `Rendering code`（渲染代码）
+
+- `Event handlers`（事件处理器）
+
+`Rendering code` 指「开发者编写的组件渲染逻辑」，最终会返回一段 JSX。
+
+```jsx
+function App() {
+  const [name, update] = useState("KaSong");
+
+  return <div>Hello {name}</div>;
+}
+```
+
+`Rendering code`的特点是：他应该是「不带副作用的纯函数」。
+
+如下`Rendering code`包含副作用（count 变化），就是不推荐的写法：
+
+```jsx
+let count = 0;
+
+function App() {
+  count++;
+  const [name, update] = useState("KaSong");
+
+  return <div>Hello {name}</div>;
+}
+```
+
+`Event handlers`是「组件内部包含的函数」，用于执行用户操作，可以包含副作用。
+
+下面这些操作都属于`Event handlers`：
+
+- 更新 input 输入框
+
+- 提交表单
+
+- 导航到其他页面
+
+如下例子中组件内部的 changeName 方法就属于`Event handlers`：
+
+```jsx
+function App() {
+  const [name, update] = useState("KaSong");
+
+  const changeName = () => {
+    update("KaKaSong");
+  };
+
+  return <div onClick={changeName}>Hello {name}</div>;
+}
+```
+
 ## API
 
 ### React.memo
@@ -800,25 +857,52 @@ const element = {
 
 ```html
 <div>
-  <h1>Hedy Lamarr's Todos</h1>
-  <ul>
-    ...
-  </ul>
+  <td>Hello</td>
+  <td>World</td>
 </div>
 ```
 
-如果不想额外添加`<div>`，可以改为<></>
+如果不想额外添加`<div>`，可以改为`<Fragments></Fragments>`
 
-```html
+`Fragments` 允许你将子列表分组，而无需向 DOM 添加额外节点
+
+```jsx
+return (
+  <React.Fragment>
+    <td>Hello</td>
+    <td>World</td>
+  </React.Fragment>
+);
+```
+
+使用显式 `<Fragment>` 语法声明的片段可能具有 key。key 是唯一可以传递给 Fragment 的属性
+
+```jsx
+function Glossary(props) {
+  return (
+    <dl>
+      {props.items.map((item) => (
+        // 没有`key`，React 会发出一个关键警告
+        <React.Fragment key={item.id}>
+          <dt>{item.term}</dt>
+          <dd>{item.description}</dd>
+        </React.Fragment>
+      ))}
+    </dl>
+  );
+}
+```
+
+你可以使用一种新的，且更简短的语法来声明 Fragments。它看起来像空标签：
+
+```jsx
 <>
-  <h1>Hedy Lamarr's Todos</h1>
-  <ul>
-    ...
-  </ul>
+  <td>Hello</td>
+  <td>World</td>
 </>
 ```
 
-> 这个空标签称为 React 片段。React 片段让您可以对事物进行分组，而不会在浏览器 HTML 树中留下任何痕迹。JSX 看起来像 HTML，但在底层它被转换成普通的 JavaScript 对象。
+你可以像使用其他任意元素一样使用`<> </>`，**但它并不支持 key 或属性。**
 
 ### 关闭所有标签
 
@@ -973,8 +1057,6 @@ function Item({ name, isPacked }) {
 }
 ```
 
-一个组件必须返回，如果不想显示内容，可以返回 null
-
 也可以使用三元运算符
 
 ```javascript
@@ -1002,6 +1084,18 @@ function Item({ name, isPacked }) {
     itemContent = <del>{name + " ✔"}</del>;
   }
   return <li className="item">{itemContent}</li>;
+}
+```
+
+**一个组件必须返回，如果不想显示内容，可以返回 null**
+
+```jsx
+function WarningBanner(props) {
+  if (!props.warn) {
+    return null;
+  }
+
+  return <div className="warning">Warning!</div>;
 }
 ```
 
@@ -1064,6 +1158,160 @@ React 提供了一种“严格模式”，在这种模式下，它在开发过�
 在 React 中，副作用通常属于事件处理程序。事件处理程序是 React 在您执行某些操作时运行的函数，例如，当单击按钮时，即使在组件中定义了事件处理程序，它们也不会在渲染期间运行，所以事件处理程序不需要是纯的。
 
 可以通过在组件中调用`useEffect`将其附加到 JSX ，这告诉 React 在渲染之后，在允许副作用的情况下稍后执行它。
+
+### 在运行时选择类型
+
+不能将通用表达式作为 React 元素类型。如果你想通过通用表达式来（动态）决定元素类型，你需要首先将它赋值给大写字母开头的变量。这通常用于根据 prop 来渲染不同组件的情况下:
+
+```jsx
+import React from 'react';
+import { PhotoStory, VideoStory } from './stories';
+
+const components = {
+  photo: PhotoStory,
+  video: VideoStory
+};
+
+function Story(props) {
+  // 错误！JSX 类型不能是一个表达式。
+  return <components[props.storyType] story={props.story} />;
+}
+
+function Story(props) {
+  // 正确！JSX 类型可以是大写字母开头的变量。
+  const SpecificStory = components[props.storyType];
+  return <SpecificStory story={props.story} />;
+}
+```
+
+### Props 默认值为 “True”
+
+如果你没给 prop 赋值，它的默认值是 true。以下两个 JSX 表达式是等价的：
+
+```jsx
+<MyTextBox autocomplete />
+
+<MyTextBox autocomplete={true} />
+```
+
+### 属性展开
+
+可以使用展开运算符 `...` 来在 JSX 中传递整个 props 对象。还可以选择只保留当前组件需要接收的 props，并使用展开运算符将其他 props 传递下去。
+
+```jsx
+const Button = (props) => {
+  const { kind, ...other } = props;
+  const className = kind === "primary" ? "PrimaryButton" : "SecondaryButton";
+  return <button className={className} {...other} />;
+};
+
+const App = () => {
+  return (
+    <div>
+      <Button kind="primary" onClick={() => console.log("clicked!")}>
+        Hello World!
+      </Button>
+    </div>
+  );
+};
+```
+
+### JSX 中的子元素
+
+#### 字符串字面量
+
+JSX 会移除行首尾的空格以及空行。与标签相邻的空行均会被删除，文本字符串之间的新行会被压缩为一个空格。因此以下的几种方式都是等价的：
+
+```jsx
+<div>Hello World</div>
+
+<div>
+  Hello World
+</div>
+
+<div>
+  Hello
+  World
+</div>
+
+<div>
+
+  Hello World
+</div>
+```
+
+#### 函数作为子元素
+
+通常，JSX 中的 JavaScript 表达式将会被计算为字符串、React 元素或者是列表。
+
+不过，`props.children` 和其他 prop 一样，它可以传递任意类型的数据，而不仅仅是 React 已知的可渲染类型。例如，如果你有一个自定义组件，你可以把回调函数作为 `props.children` 进行传递：
+
+```jsx
+// 调用子元素回调 numTimes 次，来重复生成组件
+function Repeat(props) {
+  let items = [];
+  for (let i = 0; i < props.numTimes; i++) {
+    items.push(props.children(i));
+  }
+  return <div>{items}</div>;
+}
+
+function ListOfTenThings() {
+  return (
+    <Repeat numTimes={10}>
+      {(index) => <div key={index}>This is item {index} in the list</div>}
+    </Repeat>
+  );
+}
+```
+
+你可以将任何东西作为子元素传递给自定义组件，只要确保在该组件渲染之前能够被转换成 React 理解的对象。这种用法并不常见，但可以用于扩展 JSX。
+
+#### 布尔类型、Null 以及 Undefined 将会忽略
+
+false, null, undefined, and true 是合法的子元素。但它们并不会被渲染。以下的 JSX 表达式渲染结果相同
+
+```jsx
+<div />
+
+<div></div>
+
+<div>{false}</div>
+
+<div>{null}</div>
+
+<div>{undefined}</div>
+
+<div>{true}</div>
+```
+
+这有助于依据特定条件来渲染其他的 React 元素
+
+```jsx
+<div>{showHeader && <Header />}</div>
+```
+
+值得注意的是数字 0 仍然会被 React 渲染。
+
+以下代码当 `props.messages` 是空数组时，0 仍然会被渲染：
+
+```jsx
+<div>{props.messages.length && <MessageList messages={props.messages} />}</div>
+```
+
+要解决这个问题，确保 && 之前的表达式总是布尔值：
+
+```jsx
+<div>
+  {props.messages.length > 0 && <MessageList messages={props.messages} />}
+</div>
+```
+
+反之，如果你想渲染 `false、true、null、undefined` 等值，你需要先将它们转换为字符串：
+
+```jsx
+<div>My JavaScript variable is {String(myVariable)}.</div>
+```
 
 ## 交互
 
