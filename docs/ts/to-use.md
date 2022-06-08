@@ -307,3 +307,246 @@ type test = Person<Person> // {name: string,age: number}
 ### NonNullable
 
 `NonNullable<Type>`会将 `null`和 `undefined`从 `Type` 中排除掉，由剩余类型组成一个新的类型
+
+## 高级概念
+
+### 分发
+
+分发的概念和 `Conditional Types`（条件类型） 息息相关
+
+```ts
+// 当泛型 T 满足 string 类型的约束时，它会返回 true ，否则则会返回 false 类型
+type isString<T> = T extends string ? true : false;
+
+// a 的类型为 true
+let a: isString<"a">;
+```
+
+条件类型看起来和三元表达式非常相似，甚至你完全可以将它理解成为三元表达式。只不过它接受的是类型以及判断的是类型而已。
+
+> 需要注意的是条件类型 a extends b ? c : d 仅仅支持在 type 关键字中使用
+
+了解了泛型约束之后，我们在回到所谓分发的概念上来
+
+```ts
+type GetSomeType<T extends string | number> = T extends string ? "a" : "b";
+
+let someTypeOne: GetSomeType<string>; // someTypeone 类型为 'a'
+
+let someTypeTwo: GetSomeType<number>; // someTypeone 类型为 'b'
+
+let someTypeThree: GetSomeType<string | number>; // someTypeone 类型为'a'|'b'
+```
+
+分发简单来说就是**分别使用 string 和 number 这两个类型进入 GetSomeType 中进行判断，最终返回两次类型结果组成的联合类型**
+
+```js
+// 伪代码：GetSomeType<string | number> = GetSomeType<string> | GetSomeType<number>
+let someTypeThree: GetSomeType<string | number>;
+```
+
+**满足分发的条件:**
+
+- 分发一定是需要产生在 extends 产生的类型条件判断中，并且是前置类型
+  比如`T extends string | number ? 'a' : 'b';` 产生分发效果的也只有 `extends` 关键字前的 T 类型，`string | number` 仅仅代表一种条件判断。
+
+- 分发一定是要满足联合类型，只有联合类型才会产生分发（其他类型无法产生分发的效果，比如 & 交集中等等）
+
+- 分发一定要满足所谓的裸类型中才会产生效果
+
+  ```js
+  // 此时的T并不是一个单独的”裸类型“T 而是 [T]
+  type GetSomeType<T extends string | number | [string]> = [T] extends string[]
+  ? 'a'
+  : 'b';
+  // 即使我们修改了对应的类型判断，仍然不会产生所谓的分发效果。因为[T]并不是一个裸类型
+  // 只会产生一次判断  [string] | number extends string[]  ? 'a' : 'b'
+  // someTypeThree 仍然只有 'b' 类型 ，如果进行了分发的话那么应该是 'a' | 'b'
+  let someTypeThree: GetSomeType<[string] | number>;
+
+  ```
+
+**分发的作用：**
+
+实现高级内置类型 `Exclude`
+
+```ts
+// 当满足条件时会得到 never。never 代表的是一个无法达到的类型，不会产生任何效果
+type MyExclude<T, K> = T extends K ? nerve : T;
+
+type TypeA = string | number | boolean | symbol;
+
+type ExcludeSymbolType = MyExclude<TypeA, symbol | boolean>;
+```
+
+### 循环
+
+TypeScript 中同样存在对于类型的循环语法(Mapping Type)，我们可以通过 `in` 关键字配合联合类型来对于类型进行迭代。
+
+```ts
+interface IProps {
+  name: string;
+  age: number;
+  highSchool: string;
+  university: string;
+}
+
+// IPropsKey类型为
+// type IPropsKey = {
+//  name: boolean;
+//  age: boolean;
+//  highSchool: boolean;
+//  university: boolean;
+//  }
+type IPropsKey = { [K in keyof IProps]: boolean };
+```
+
+循环只能对对象进行一层的转化，并不能递归处理
+
+我们可以通过条件判断和循环进行结合
+
+```ts
+type deepPartial<T> = {
+  [K in keyof T]?: T[K] extends object ? deepPartial<T[K]> : T[K];
+};
+```
+
+**循环的作用：**
+
+实现高级内置类型 `Partial`
+
+```ts
+interface IInfo {
+  name: string;
+  age: number;
+}
+
+type MyPartial<T> = { [K in keyof T]?: T[K] };
+
+type OptionalInfo = MyPartial<IInfo>;
+```
+
+### 逆变
+
+先看一个场景
+
+```ts
+let a!: { a: string; b: number };
+let b!: { a: string };
+
+b = a;
+```
+
+上述代码因为 a 的类型定义中完全包括 b 的类型定义，所以 a 类型完全是可以赋值给 b 类型，这被称为**类型兼容性**。通俗来说也就是多的可以赋值给少的
+
+再看下面代码
+
+```ts
+let fn1!: (a: string, b: number) => void;
+let fn2!: (a: string, b: number, c: boolean) => void;
+
+fn1 = fn2; // TS Error: 不能将fn2的类型赋值给fn1
+
+fn2 = fn1; // 正确，被允许
+```
+
+fn1 在执行时仅仅需要两个参数`a: string, b: number`，显然 fn2 的类型定义中是满足这个条件的（当然它还多传递了第三个参数 `c:boolean`，在 JS 中对于函数而言调用时的参数个数大于定义时的参数个数是被允许的）。
+
+就比如上述函数的参数类型赋值就被称为**逆变**，参数少（父）的可以赋给参数多（子）的那一个。看起来和类型兼容性（多的可以赋给少的）相反，但是通过调用的角度来考虑的话恰恰满足多的可以赋给少的兼容性原则。
+
+再来看一个稍微复杂点的例子来加深所谓逆变的理解:
+
+```ts
+class Parent {}
+
+// Son继承了Parent 并且比parent多了一个实例属性 name
+class Son extends Parent {
+  public name: string = "19Qingfeng";
+}
+
+// GrandSon继承了Son 在Son的基础上额外多了一个age属性
+class Grandson extends Son {
+  public age: number = 3;
+}
+
+// 分别创建父子实例
+const son = new Son();
+
+function someThing(cb: (param: Son) => any) {
+  // do some someThing
+  // 注意：这里调用函数的时候传入的实参是Son
+  cb(Son);
+}
+
+someThing((param: Grandson) => param); // error
+someThing((param: Parent) => param); // correct
+```
+
+刚才我们提到过函数的参数的方式被称为逆变，所以当我们调用 someThing 时传递的 callback 需要赋给定义 something 函数中的 cb 。
+
+换句话说类型 `(param: Grandson) => param` 需要赋给 `cb: (param: Son) => any`，这显然是不被允许的。
+
+相反，第二个`someThing((param: Parent) => param);`相当于函数参数重将 Parent 赋给 Son 将少的赋给多的满足逆变，所以是正确的。
+
+从另一个角度解释，someThing 会在 cb 函数调用时传入一个 Son 参数的实参。所以当我们传入 `someThing((param: Parent) => param)` 时，相当于在 something 函数内部调用 `(param: Parent) => param` 时会根据 someThing 中 callback 的定义传入一个 Son 。Son 是 Parent 的子类，涵盖所有 Parent 的公共属性方法，自然也是满足条件的。
+
+### 协变
+
+函数类型赋值兼容时函数的返回值就是典型的协变场景
+
+```ts
+let fn1!: (a: string, b: number) => string;
+let fn2!: (a: string, b: number) => string | number | boolean;
+
+fn2 = fn1; // correct
+fn1 = fn2; // error: 不可以将 string|number|boolean 赋给 string 类型
+```
+
+显然 `string | number | boolean` 是无法分配给 `string` 类型的，但是 `string` 类型是满足 `string | number | boolean` 其中之一，所以自然可以赋值给 `string | number | boolean` 组成的联合类型。
+
+### 待推断类型 infer
+
+`infer` 代表待推断类型，它的必须和 `extends` 条件约束类型一起使用。
+
+在条件类型约束中为我们提供了 `infer` 关键字来提供实现更多的类型可能，它表示我们可以在条件类型中推断一些暂时无法确定的类型
+
+```ts
+type Flatten<Type> = Type extends Array<infer Item> ? Item : Type;
+
+type SubType = Flatten<string>; // string
+type SubType = Flatten<[string, number]>; // string|number
+```
+
+其中 `Item` 取决于传进来的 `Type`，我们类型定义时并不能立即确定某些类型，而是在使用类型时来根据条件来推断对应的类型。
+
+因为数组中的元素可能为 `string` 也可能为 `number`，自然在使用类型时 `infer Item` 会将待推断的 Item 推断为 `string | number` 联合类型。
+
+> 需要注意的是 `infer` 关键字类型，必须结合 `Conditional Types` 条件判断来使用。
+
+**infer 的使用：**
+
+在 TS 中存在一个内置类型 `Parameters` ，它接受传入一个函数类型作为泛型参数并且会返回这个函数所有的参数类型组成的元祖。
+
+```ts
+// 定义函数类型
+interface IFn {
+  (age: number, name: string): void;
+}
+
+type FnParameters = Parameters<IFn>; // [age: number, name: string]
+
+let a: FnParameters = [25, "test"];
+```
+
+实现如下
+
+```ts
+type MyParameters<T extends (...args: any) => any> = T extends (
+  ...args: infer R
+) => any
+  ? R
+  : never;
+```
+
+> 参考链接：
+> [如何进阶 TypeScript 功底？一文带你理解 TS 中各种高级语法](https://juejin.cn/post/7089809919251054628)
