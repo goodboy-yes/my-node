@@ -85,6 +85,7 @@ export default defineUserConfig<DefaultThemeOptions>({
         text: "React",
         children: [
           "/React/use",
+          "/React/api",
           "/React/react-router",
           "/React/umijs",
           "/React/code-standard",
