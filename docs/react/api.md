@@ -217,3 +217,132 @@ componentDidUpdate(prevProps) {
 ### componentWillUnmount()
 
 `componentWillUnmount()` 会在组件卸载及销毁之前直接调用。在此方法中执行必要的清理操作，例如，清除 timer，取消网络请求或清除在 `componentDidMount()` 中创建的订阅等。
+
+### shouldComponentUpdate()
+
+```jsx
+shouldComponentUpdate(nextProps, nextState);
+```
+
+当 `props` 或 `state` 发生变化时，`shouldComponentUpdate()` 会在渲染执行之前被调用。返回值默认为 true。首次渲染或使用 `forceUpdate()` 时不会调用该方法。
+
+返回 `false` 以告知 `React` 可以跳过更新。请注意，返回 `false` 并不会阻止子组件在 `state` 更改时重新渲染。
+
+## 其他 API
+
+### setState()
+
+```jsx
+setState(updater[, callback])
+```
+
+`setState()` 将对组件 `state` 的更改排入队列，并通知 `React` 需要使用更新后的 `state` 重新渲染此组件及其子组件。这是用于更新用户界面以响应事件处理器和处理服务器数据的主要方式
+
+`React` 会延迟调用`setState()`，需要强制 DOM 更新同步应用时可以使用 `flushSync` 来包装它，
+
+参数一为带有形式参数的 `updater` 函数：
+
+```jsx
+(state, props) => stateChange;
+```
+
+`state` 是对应用变化时组件状态的引用。它不应直接被修改。应该使用基于 `state` 和 `props` 构建的新对象来表示变化
+
+```jsx
+this.setState((state, props) => {
+  return { counter: state.counter + props.step };
+});
+```
+
+`updater` 函数中接收的 `state` 和 `props` 都保证为最新。`updater` 的返回值会与 `state` 进行浅合并。
+
+`setState()` 的第一个参数除了接受函数外，还可以接受对象类型：
+
+```jsx
+setState(stateChange[, callback])
+```
+
+`stateChange` 会将传入的对象浅层合并到新的 `state`。这种形式的 `setState()` 也是异步的，并且在同一周期内会对多个 `setState` 进行批处理。
+
+```jsx
+this.setState({ quantity: 2 });
+```
+
+`setState()` 的第二个参数为可选的回调函数，它将**在 `setState` 完成合并并重新渲染组件后执行**。建议使用 `componentDidUpdate()` 来代替此方式。
+
+### forceUpdate()
+
+```jsx
+component.forceUpdate(callback);
+```
+
+默认情况下，当组件的 `state` 或 `props` 发生变化时，组件将重新渲染。如果 `render()` 方法依赖于其他数据，则可以调用 `forceUpdate()` 强制让组件重新渲染。
+
+调用 `forceUpdate()` 将致使组件调用 `render()` 方法，此操作会跳过该组件的 `shouldComponentUpdate()`。但其子组件会触发正常的生命周期方法
+
+避免使用 `forceUpdate()`，尽量在 `render()` 中使用 `this.props` 和 `this.state`。
+
+## Class 属性
+
+### defaultProps
+
+`defaultProps` 可以为 `Class` 组件添加默认 `props`。这一般用于 `props` 未赋值，但又不能为 null 的情况
+
+```jsx
+class CustomButton extends React.Component {
+  // ...
+}
+
+CustomButton.defaultProps = {
+  color: "blue",
+};
+```
+
+```jsx
+render() {
+  return <CustomButton /> ; // props.color 将设置为 'blue'
+}
+
+render() {
+  return <CustomButton color={null} /> ; // props.color 将保持是 null
+}
+```
+
+## ReactDOM
+
+react-dom 包导出了如下这些方法：
+
+- `createPortal()`
+- `flushSync()`
+
+### createPortal()
+
+```jsx
+createPortal(child, container);
+```
+
+创建 `portal`。`Portal` 提供了一种将子节点渲染到已 DOM 节点中的方式，该节点存在于 DOM 组件的层次结构之外。
+
+### flushSync()
+
+```jsx
+flushSync(callback);
+```
+
+强制 `React` 同步刷新提供的回调函数中的任何更新。这确保了 DOM 会被立即 更新。
+
+```jsx
+flushSync(() => {
+  setCount(count + 1);
+});
+```
+
+> flushSync 会对性能产生很大影响。尽量少用。
+
+## 合成事件
+
+`SyntheticEvent` 实例是将被传递给你的事件处理函数，它是浏览器的原生事件的跨浏览器包装器。除兼容所有浏览器外，它还拥有和浏览器原生事件相同的接口
+
+当你需要使用浏览器的底层事件时，只需要使用 `nativeEvent` 属性来获取即可。例如，在 `onMouseLeave` 事件中 `event.nativeEvent` 将指向 `mouseout` 事件。
+
+`React` 通过将事件规范化以让他们在不同浏览器中拥有一致的属性。一般事件处理函数在冒泡阶段被触发。如需注册捕获阶段的事件处理函数，则应为事件名添加 `Capture`。例如，处理捕获阶段的点击事件请使用 `onClickCapture`，而不是 `onClick`。
