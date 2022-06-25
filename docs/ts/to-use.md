@@ -550,3 +550,29 @@ type MyParameters<T extends (...args: any) => any> = T extends (
 
 > 参考链接：
 > [如何进阶 TypeScript 功底？一文带你理解 TS 中各种高级语法](https://juejin.cn/post/7089809919251054628)
+
+## 小技巧
+
+### 使用模板字符串重映射键名
+
+当我们期望复制一个接口，并让生成接口在键名上做变更时，我们可以基于模板字面量类型修改键名。
+
+```ts
+interface Raw {
+  type: string;
+  content: string;
+  result: string;
+}
+
+type Processor<R extends Raw> = {
+  [K in keyof R as `processed${Capitalize<string & K>}`]: R[K];
+};
+
+type Processed = Processor<Raw>;
+
+interface Tmp {
+  processedType: string;
+  processedContent: string;
+  processedResult: string;
+}
+```
