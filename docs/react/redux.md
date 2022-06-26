@@ -2,13 +2,13 @@
 
 ## 概念
 
-Redux 是一个使用叫做“action”的事件来管理和更新应用状态的模式和工具库 它以集中式 `Store（centralized store）`的方式对整个应用中使用的状态进行集中管理，其规则确保状态只能以可预测的方式更新。
+Redux 是一个使用叫做“action”的事件来管理和更新应用状态的模式和工具库。它以集中式 `Store（centralized store）`的方式对整个应用中使用的状态进行集中管理，其规则确保状态只能以可预测的方式更新。
 
 Redux 提供的模式和工具使您更容易理解应用程序中的状态何时、何地、为什么以及如何更新，以及当这些更改发生时您的应用程序逻辑将如何表现
 
 ### State 管理
 
-假设一个包含一下内容的应用程序
+假设一个包含以下内容的应用程序
 
 - state：驱动应用的真实数据源头
 - view：基于当前状态的 UI 声明性描述
@@ -108,34 +108,7 @@ function counterReducer(state = initialState, action) {
   - 为了描述 action 如何改变 state tree ，你需要编写 reducers。
   - Reducer 只是一些纯函数，它接收先前的 state 和 action，并返回新的 state。刚开始你可以只有一个 reducer，随着应用变大，你可以把它拆成多个小的 reducers，分别独立地操作 state tree 的不同部分，因为 reducer 只是函数，你可以控制它们被调用的顺序，传入附加数据，甚至编写可复用的 reducer 来处理一些通用任务，如分页器
 
-## Redux 数据流
-
-在上面我们谈到了“单向数据流”，对于 `Redux`，我们可以将这些步骤分解为更详细的内容
-
-- 初始启动：
-  - 使用最顶层的 root reducer 函数创建 Redux store
-  - store 调用一次 root reducer，并将返回值保存为它的初始 state
-  - 当 UI 首次渲染时，UI 组件访问 Redux store 的当前 state，并使用该数据来决定要呈现的内容。同时监听 store 的更新，以便他们可以知道 state 是否已更改。
-- 更新环节：
-  - 应用程序中发生了某些事情，例如用户单击按钮
-  - dispatch 一个 action 到 Redux store，例如 dispatch({type: 'counter/increment'})
-  - store 用之前的 state 和当前的 action 再次运行 reducer 函数，并将返回值保存为新的 state
-  - store 通知所有订阅过的 UI，通知它们 store 发生更新
-  - 每个订阅过 store 数据的 UI 组件都会检查它们需要的 state 部分是否被更新。
-  - 发现数据被更新的每个组件都强制使用新数据重新渲染，紧接着更新网页
-
-## 什么时候使用 redux
-
-Redux 可帮助处理共享状态的管理，但有更多的概念需要学习，还有更多的代码需要编写，并要求遵循某些限制
-
-Redux 在以下情况下更有用：
-
-- 在应用的大量地方，都存在大量的状态
-- 应用状态会随着时间的推移而频繁更新
-- 更新该状态的逻辑可能很复杂
-- 中型和大型代码量的应用，很多人协同开发
-
-## 示例
+### 示例
 
 应用的整体全局状态以对象树的方式存放于单个 **store**。
 
@@ -183,3 +156,76 @@ store.dispatch({ type: "counter/incremented" });
 store.dispatch({ type: "counter/decremented" });
 // {value: 1}
 ```
+
+## Redux Toolkit
+
+`Redux Toolkit` 是官方推荐的编写 `Redux` 逻辑的方法。它包含了 `Redux` 核心，并包含对于构建 `Redux` 应用必不可少的软件包和功能。`Redux Toolkit` 建立在最佳实践中，简化了大多数 Redux 任务，防止了常见错误，并使编写 `Redux` 应用程序更加容易。
+
+### 示例
+
+```jsx
+import { createSlice, configureStore } from "@reduxjs/toolkit";
+
+const counterSlice = createSlice({
+  name: "counter",
+  initialState: {
+    value: 0,
+  },
+  reducers: {
+    incremented: (state) => {
+      // Redux工具包允许我们在Reducer中编写"mutating" 逻辑。它
+      //实际上不会改变状态，因为它使用Immer库，
+      //它检测到“草稿状态”的更改并生成全新的
+      //基于这些更改的不变状态
+      state.value += 1;
+    },
+    decremented: (state) => {
+      state.value -= 1;
+    },
+  },
+});
+
+export const { incremented, decremented } = counterSlice.actions;
+
+const store = configureStore({
+  reducer: counterSlice.reducer,
+});
+
+// Can still subscribe to the store
+store.subscribe(() => console.log(store.getState()));
+
+// 仍将操作对象传递给“dispatch”，但它们是我们创建的
+store.dispatch(incremented());
+// {value: 1}
+store.dispatch(incremented());
+// {value: 2}
+store.dispatch(decremented());
+// {value: 1}
+```
+
+## Redux 数据流
+
+在上面我们谈到了“单向数据流”，对于 `Redux`，我们可以将这些步骤分解为更详细的内容
+
+- 初始启动：
+  - 使用最顶层的 root reducer 函数创建 Redux store
+  - store 调用一次 root reducer，并将返回值保存为它的初始 state
+  - 当 UI 首次渲染时，UI 组件访问 Redux store 的当前 state，并使用该数据来决定要呈现的内容。同时监听 store 的更新，以便他们可以知道 state 是否已更改。
+- 更新环节：
+  - 应用程序中发生了某些事情，例如用户单击按钮
+  - dispatch 一个 action 到 Redux store，例如 dispatch({type: 'counter/increment'})
+  - store 用之前的 state 和当前的 action 再次运行 reducer 函数，并将返回值保存为新的 state
+  - store 通知所有订阅过的 UI，通知它们 store 发生更新
+  - 每个订阅过 store 数据的 UI 组件都会检查它们需要的 state 部分是否被更新。
+  - 发现数据被更新的每个组件都强制使用新数据重新渲染，紧接着更新网页
+
+## 什么时候使用 redux
+
+Redux 可帮助处理共享状态的管理，但有更多的概念需要学习，还有更多的代码需要编写，并要求遵循某些限制
+
+Redux 在以下情况下更有用：
+
+- 在应用的大量地方，都存在大量的状态
+- 应用状态会随着时间的推移而频繁更新
+- 更新该状态的逻辑可能很复杂
+- 中型和大型代码量的应用，很多人协同开发
