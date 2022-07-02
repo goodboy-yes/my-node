@@ -121,6 +121,199 @@ console.log(sayHello(user));
 
 > 使用 globs：`**/*` （一个示例用法：`src/**/*`）意味着匹配所有的文件夹和所有文件（扩展名为 .ts/.tsx，当开启了 allowJs: true 选项时，扩展名可以是 .js/.jsx）。
 
+## [类型声明来源](https://mp.weixin.qq.com/s/AsTrGLhipd32RrNUFHuD5A)
+
+我们平常使用的 HTMLElement、Event 等内置 api 是如何有类型提示的？ts 提供以下几种类型声明的来源
+
+### lib 中内置的类型声明
+
+`TypeScript` 设计了 `declare` 的语法，可以单独声明变量的类型：
+
+```typescript
+// 对象
+interface Person {
+  name: string;
+  age?: number;
+}
+declare const guang: Person;
+
+// 函数
+declare function add(num1: number, num2: number): number;
+```
+
+这样单独声明了类型，使用这些 api 的时候也就能做类型检查。
+
+像 JS 引擎那些 api，还有浏览器提供的 api，这些基本是必用的，而且都有标准的。所以 `TypeScript` 给内置了它们的类型声明，放在了`TypeScript` 包下的 `lib` 目录，使用的时候在`tsconfig.json` 里配置下 `compilerOptions.lib`，就可以引入对应的 `d.ts` 的类型声明文件。
+
+![](./images/640.png)
+
+### @types/xx
+
+ts 内置的类型声明只有 dom 和 es ，node 等环境的 api 因为没有标准而没有被 TS 内置，但 TS 同样也支持了这些环境的类型声明的配置。
+
+方式是通过 `@types/xxx` 的包，TS 会先加载内置的 lib 的类型声明，然后再去查找 @types 包下的类型声明。这样，其他环境的类型声明就可以通过这种方式来扩展。在`tsconfig.json` 里配置 `compilerOptions.typeRoots`，可以修改查找 @types 包的目录
+
+这种方式也可以给 JS 包加上类型声明，js 包如果本身是 ts 写的，编译的时候就可以开启 `compilerOptions.declaration`，来生成 `d.ts` 文件，然后在 `package.json` 里配置 `types` 来指定 `d.ts` 的位置，这样就不需要单独的 `@types` 包了。但如果代码不是用 ts 写的，那可能就需要单独写一个 `@types/xxx` 的包来声明 ts 类型
+
+### include + files
+
+开发者自己写的类型声明可以通过在`tsconfig.json` 里配置 `include`等属性引入
+
+tsc 在编译的时候，会分别加载 `lib` 的，`@types` 下的，还有 `include` 和 `files` 的文件，进行类型检查。
+
+### 总结
+
+除了在变量声明时定义类型外，TS 也支持通过 `declare` 单独声明类型。只存放类型声明的文件后缀是 `d.ts`。
+
+TypeScript 存放类型声明的地方：
+
+- `lib`：内置的类型声明，包含 dom 和 es 的，因为这俩都是有标准的。
+
+- `@types/xx`：其他环境的 api 类型声明，比如 node，还有 npm 包的类型声明
+
+- 开发者写的代码：通过 include + exclude 还有 files 指定
+
+其中，npm 包也可以同时存放 ts 类型，通过 `packages.json` 的 `types` 字段指定路径即可。
+
+常见的是 vue 的类型是存放在 npm 包下的，而 react 的类型是在 `@types/react` 里的。因为源码一个是 ts 写的，一个不是。
+
+## [类型声明方式](https://mp.weixin.qq.com/s/AsTrGLhipd32RrNUFHuD5A)
+
+### namespace
+
+TS 最早支持的模块化方案是 `namespace`
+
+```typescript
+namespace Guang {
+  export interface Person {
+    name: string;
+    age?: number;
+  }
+
+  const name = "guang";
+  const age = 20;
+
+  export const guang: Person = {
+    name,
+    age,
+  };
+  export function add(a: number, b: number): number {
+    return a + b;
+  }
+}
+```
+
+编译后的代码
+
+![](./images/640-1656778326309.png)
+
+### declare module
+
+后来出现了 `CommonJS` 的规范，那种不能叫 `namespace` 了，所以 TS 支持了 `module`
+
+`@types/node` 的 api 定义就是一堆的 `module`
+
+```typescript
+declare module 'fs/promises' {
+    import { Abortable } from 'node:events';
+    import { Stream } from 'node:stream';
+    import {
+        Stats,
+        BigIntStats,
+        StatOptions,
+        WriteVResult,
+        ReadVResult,
+        PathLike,
+        RmDirOptions,
+        RmOptions,
+        MakeDirectoryOptions,
+        Dirent,
+        OpenDirOptions,
+        Dir,
+        ObjectEncodingOptions,
+        BufferEncodingOption,
+        OpenMode,
+        Mode,
+        WatchOptions,
+        WatchEventType,
+        CopyOptions,
+        ReadStream,
+        WriteStream,
+    } from 'node:fs';
+    interface FileChangeInfo<T extends string | Buffer> {
+        eventType: WatchEventType;
+        filename: T;
+    }
+    ...
+}
+```
+
+### es module
+
+后来 JS 有了 `es module` 规范，所以现在推荐直接用 `import` `export` 的方式来声明模块和导入导出了。
+
+有了 `es module` 之后，TS 有了一个单独的设计：`d.ts` 中，**如果没有 `import`、`export` 语法，那所有的类型声明都是全局的，否则是模块内的。**
+
+在模块内如果要定义全局类型，可以使用`declare global`
+
+```typescript
+import * as fs from "fs";
+
+declare global {
+  const func: () => number;
+}
+```
+
+不止是 `es module` 的模块里可以用 `global` 声明全局类型，`module` 的方式声明的 `CommonJS` 模块也是可以的
+
+```typescript
+declare module "buffer" {
+  global {
+    type BufferEncoding =
+      | "ascii"
+      | "utf8"
+      | "utf-8"
+      | "utf16le"
+      | "ucs2"
+      | "ucs-2"
+      | "base64"
+      | "base64url"
+      | "latin1"
+      | "binary"
+      | "hex";
+  }
+}
+```
+
+当需要引入模块，又想类型声明依然是全局的时，可以使用`编译器指令 reference`
+
+```typescript
+// Reference required types from the default lib:
+/// <reference lib="es2020" />
+/// <reference lib="esnext.asynciterable" />
+/// <reference lib="esnext.intl" />
+/// <reference lib="esnext.bigint" />
+
+// Base definitions for all NodeJS modules that are not specific to any version of TypeScript:
+/// <reference path="assert.d.ts" />
+/// <reference path="assert/strict.d.ts" />
+...
+```
+
+这样既可以引入类型声明，又不会导致所有类型声明都变为模块内的
+
+### 总结
+
+TS 声明模块的方式
+
+- `namespace`：最早的实现模块的方式，编译为声明对象和设置对象的属性的 JS 代码，很容易理解
+
+- `module`：和 namespace 的 AST 没有任何区别，只不过一般用来声明 CommonJS 的模块，在 @types/node 下有很多
+
+- `es module`：es 标准的模块语法，ts 额外扩展了 import type
+
+`d.ts` 的类型声明默认是全局的，除非有 `es module` 的 `import`、`export` 的声明，这时候就要手动 `declare global` 了。为了避免这种情况，可以用 `reference` 的编译器指令。
+
 ## 模块
 
 ### 模块路径动态查找
