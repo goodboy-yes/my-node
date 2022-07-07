@@ -17,6 +17,24 @@ const re = new RegExp("[abcd]", "gi");
 - `m`多行匹配，^ 和 $ 在字符串的每一行都进行一次匹配。
 - `s`使特殊字符圆点 `.`中包含换行符 `\n`
 
+## 量词
+
+正则默认是只匹配一次的，即一次匹配完后就算后文还有符合的内容也不再获取，这涉及到修饰符`g`
+
+- `*` 匹配前面的子表达式零次或多次。例如，`zo*` 能匹配 "z" 以及 "zoo"。 \* 等价于`{0,}`。
+
+- `+` 匹配前面的子表达式一次或多次。例如，`zo+` 能匹配 "zo" 以及 "zoo"，但不能匹配 "z"。+ 等价于 `{1,}`。
+- `?` 匹配前面的子表达式零次或一次。例如，`do(es)?` 可以匹配 "do" 或 "does" 中的"do" 。? 等价于 `{0,1}`。
+- `{}` 表示前面的字符应该出现的次数。`{n}`表示出现 n 次;`{n,}`表示至少出现 n 次；`{n,m}`表示出现 n 次到 m 次。
+
+**量词模式**
+
+量词还涉及到模式问题，因为量词有范围，这就意味着可取多可取少，但计算机是不允许有歧义的，所以量词存在三种模式
+
+- 贪婪模式：默认，会尽可能匹配多的内容
+- 懒惰模式：量词后面加个`?`，会尽可能少匹配内容
+- 独占模式：量词后面加个`+`，不触发回溯动作
+
 ## 元字符
 
 - `\` 在字面意义和特殊意义之间进行转换，例如\/表示字符/。
@@ -26,13 +44,6 @@ const re = new RegExp("[abcd]", "gi");
 
 - `[]` 匹配字符集中的一个字符，例如`[abc]`表示匹配字符 a 或 b 或 c；[^abc]表示匹配不等于 a 或 b 或 c 的字符；`[a-e]`匹配在 a 到 e 范围内的字符；`[a-b0-9A-Z_]`匹配字母数字和下划线。
 - `|` 或操作，例如`(jpg|png)`表示匹配字符串 jpg 或字符串 png。注意，用`/good|goodbye/`去匹配'goodbye' 匹配到的是 good，因为分支结构是惰性的，前面的匹配上了，后面的就不再尝试了
-
-- `{}` 表示前面的字符应该出现的次数。`{n}`表示出现 n 次;`{n,}`表示至少出现 n 次；`{n,m}`表示出现 n 次到 m 次。
-
-- `*` 匹配前面的子表达式零次或多次。例如，`zo*` 能匹配 "z" 以及 "zoo"。 \* 等价于`{0,}`。
-
-- `+` 匹配前面的子表达式一次或多次。例如，`zo+` 能匹配 "zo" 以及 "zoo"，但不能匹配 "z"。+ 等价于 `{1,}`。
-- `?` 匹配前面的子表达式零次或一次。例如，`do(es)?` 可以匹配 "do" 或 "does" 中的"do" 。? 等价于 `{0,1}`。
 - `\f` 匹配一个换页符。等价于 `\x0c` 和 `\cL`。
 - `\n` 匹配一个换行符。等价于 `\x0a` 和 `\cJ`。
 - `\r` 匹配一个回车符。等价于 `\x0d` 和 `\cM`。
@@ -138,6 +149,32 @@ let reg = /(?:ab)+/;
 console.log("ababa abbb ababab".match(reg)); // ["abab", index: 0, input: "ababa abbb ababab", groups: undefined]
 let reg = /(ab)+/;
 console.log("ababa abbb ababab".match(reg)); // ["abab", "ab", index: 0, input: "ababa abbb ababab", groups: undefined]
+```
+
+## 命名分组
+
+在 js 关于正则的方法中，如果存在命名分组，会存在 groups 属性，里面存放着每个命名分组的名称以及它们匹配到的值；结合解构赋值，会有很神奇的功效
+
+`exec()` 和 `match()` 方法返回的匹配结果数组上多了一个 groups 属性，里面存放着每个命名分组的名称以及它们匹配到的值
+
+```js
+const { day, month, year } = "04-25-2017".match(
+  /(?<month>\d{2})-(?<day>\d{2})-(?<year>\d{4})/
+).groups;
+// {day:25, month:04, year:2017}
+```
+
+在 `replace(/.../, replacement)` 中的使用，当 replacement 为函数时，在实参列表的最末尾，多传了一个 groups 对象
+
+```js
+"04-25-2017".replace(
+  /(?<month>\d{2})-(?<day>\d{2})-(?<year>\d{4})/,
+  (...args) => {
+    const groups = args.slice(-1)[0];
+    const { day, month, year } = groups;
+    return `${day}-${month}-${year}`;
+  }
+);
 ```
 
 ## 正则匹配举例
@@ -262,7 +299,7 @@ console.log(reg.test("1a1a1a")); // true
 
 ## 正则表达式的使用
 
-**RegExp 类：**
+### RegExp 类：
 
 `RegExp.source` 返回正则表达式的内容
 
@@ -271,16 +308,6 @@ console.log(reg.test("1a1a1a")); // true
 `RegExp.exec(s)` 匹配字符串 s，返回匹配到的子串和各个组匹配到的子串的数组，若没有匹配到任何子串则返回 null
 
 `RegExp.lastIndex` 返回最近一次匹配到的位置。默认值为-1，用于标记由方法 **RegExp.exec()** 和 **RegExp.test()** 找到的结果的下次检索的起始点。只有正则表达式使用了表示全局检索的 "`g`" 标志时，该属性才会起作用
-
-**String 类**
-
-`String.search(re)` 返回 re 匹配到的第一个位置，若不匹配则返回-1。
-
-`String.match(re)` 返回 re 匹配到的所有子串的数组，若不匹配返回 null。
-
-`String.split(re)` 用正则表达式匹配到的所有子串来将字符串分割为字符串数组。
-
-`String.replace(re, s)` 将 re 匹配到的字符替换为 s。(replace 方法的第二个参数也可以是函数)
 
 ```js
 let reg = /\w/g
@@ -294,8 +321,51 @@ reg.lastIndex //0 匹配失败后清零
 const str = "hello123back, hello456back";
 /(hello).*/.test(str) // true
 /(hello).*/.exec(str) // ['hello123back, hello456back','hello']
+```
 
+### String 类
+
+#### `String.search(re)`
+
+返回 re 匹配到的第一个位置，若不匹配则返回-1。
+
+```js
 str.search(/(hello).*/); // 0
+```
+
+#### `String.match(re)`
+
+返回 re 匹配到的所有子串的数组，若不匹配返回 null。
+
+`match` 方法的返回值与修饰符 `g` 有关（没有匹配上时返回 null）
+
+- 没有 `g` ：返回标准匹配格式，即：数组的第一个元素是整体匹配的内容，接下来是分组捕获的内容，然后是整体匹配的第一个下标，最后是目标字符串
+
+- 有 `g` ：返回的是一个包含所有匹配内容的数组
+
+```js
 str.match(/(hello).*/); // ['hello123back, hello456back','hello']
 str.match(/(?:hello).*/); // ['hello123back, hello456back']
+
+"2020-06 2020-07".match(/\d{4}-\d{2}/g);
+//  ['2020-06', '2020-07']
+
+"2020-06 2020-07".match(/\d{4}-\d{2}/);
+// ['2020-06', index: 0, input: '2020-06 2020-07', groups: undefined]
+```
+
+#### `String.split(re)`
+
+用正则表达式匹配到的所有子串来将字符串分割为字符串数组。
+
+#### `String.replace(re, s)`
+
+将 re 匹配到的字符替换为 s。(replace 方法的第二个参数也可以是函数)
+
+```js
+"02-20-2020 05-21-2020".replace(/(\d{2})-(\d{2})-(\d{4})/g, "$3年$2月$1日");
+// '2020年20月02日 2020年21月05日'
+
+"02-20-2020 05-21-2020".replace(/(\d{2})-(\d{2})-(\d{4})/, "$3年$2月$1日");
+// '2020年20月02日 05-21-2020'
 ```
