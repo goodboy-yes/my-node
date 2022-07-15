@@ -710,6 +710,27 @@ cat.makeSound(); // miao miao
 cat.move(); // roaming the earch...
 ```
 
+##### this 类型
+
+类的成员方法可以直接返回一个 this，这样就可以很方便地实现链式调用
+
+```js
+class StudyStep {
+  step1() {
+    console.log("listen");
+    return this;
+  }
+  step2() {
+    console.log("write");
+    return this;
+  }
+}
+
+const s = new StudyStep();
+
+s.step1().step2(); // 链式调用
+```
+
 #### 用 class 做接口和设置初始值
 
 先声明一个类，这个类包含组件 `props` 所需的类型和初始值：
@@ -741,7 +762,7 @@ public static defaultProps = new Props()
 
 `Props` 的实例就是 `defaultProps` 的初始值，这就是 `class`作为接口的实际应用，我们用一个 `class` 起到了接口和设置初始值两个作用，方便统一管理，减少了代码量
 
-#### **字面量类型**
+### **字面量类型**
 
 关于字面量类型`literal types`，它是对类型的进一步限制，比如你的状态码只可能是 0/1/2，那么你就可以写成 `status: 0 | 1 | 2` 的形式，而不是用一个 `number` 来表达。
 
@@ -1188,7 +1209,7 @@ class Dog implements DogInterface & CatInterface {
 
 ```js
 // 'a'
-type _T1 = ('a' | 'b') & ('a' | 'd' | 'e' | 'f')
+type _T1 = ("a" | "b") & ("a" | "d" | "e" | "f");
 
 // never，因为 string 和 number 哪有交集啊
 type _T1 = string & number;
@@ -1665,11 +1686,12 @@ function example(foo: any){
 在使用类型保护时，TS 会进一步缩小变量的类型。例子中，将类型从 any 缩小至了 string。类型保护的作用域仅仅在 if 后的块级作用域中生效
 
 除了多声明一个类型守卫以外，你也可以直接在 example 函数中判断
+
 ```js
-function example(foo: any){
-  if(typeof foo === "string"){
-      // 如下代码编译时会出错，运行时也会出错，因为 foo 是 string 不存在toExponential方法
-      console.log(foo.toExponential(2));
+function example(foo: any) {
+  if (typeof foo === "string") {
+    // 如下代码编译时会出错，运行时也会出错，因为 foo 是 string 不存在toExponential方法
+    console.log(foo.toExponential(2));
   }
   // 编译不会出错，但是运行时出错
   console.log(foo.toExponential(2));
