@@ -108,6 +108,33 @@ function counterReducer(state = initialState, action) {
   - 为了描述 action 如何改变 state tree ，你需要编写 reducers。
   - Reducer 只是一些纯函数，它接收先前的 state 和 action，并返回新的 state。刚开始你可以只有一个 reducer，随着应用变大，你可以把它拆成多个小的 reducers，分别独立地操作 state tree 的不同部分，因为 reducer 只是函数，你可以控制它们被调用的顺序，传入附加数据，甚至编写可复用的 reducer 来处理一些通用任务，如分页器
 
+### Redux 数据流
+
+在上面我们谈到了“单向数据流”，对于 `Redux`，我们可以将这些步骤分解为更详细的内容
+
+- 初始启动：
+  - 使用最顶层的 root reducer 函数创建 Redux store
+  - store 调用一次 root reducer，并将返回值保存为它的初始 state
+  - 当 UI 首次渲染时，UI 组件访问 Redux store 的当前 state，并使用该数据来决定要呈现的内容。同时监听 store 的更新，以便他们可以知道 state 是否已更改。
+- 更新环节：
+  - 应用程序中发生了某些事情，例如用户单击按钮
+  - dispatch 一个 action 到 Redux store，例如 dispatch({type: 'counter/increment'})
+  - store 用之前的 state 和当前的 action 再次运行 reducer 函数，并将返回值保存为新的 state
+  - store 通知所有订阅过的 UI，通知它们 store 发生更新
+  - 每个订阅过 store 数据的 UI 组件都会检查它们需要的 state 部分是否被更新。
+  - 发现数据被更新的每个组件都强制使用新数据重新渲染，紧接着更新网页
+
+### 什么时候使用 redux
+
+Redux 可帮助处理共享状态的管理，但有更多的概念需要学习，还有更多的代码需要编写，并要求遵循某些限制
+
+Redux 在以下情况下更有用：
+
+- 在应用的大量地方，都存在大量的状态
+- 应用状态会随着时间的推移而频繁更新
+- 更新该状态的逻辑可能很复杂
+- 中型和大型代码量的应用，很多人协同开发
+
 ### 示例
 
 应用的整体全局状态以对象树的方式存放于单个 **store**。
@@ -203,29 +230,78 @@ store.dispatch(decremented());
 // {value: 1}
 ```
 
-## Redux 数据流
+## 使用
 
-在上面我们谈到了“单向数据流”，对于 `Redux`，我们可以将这些步骤分解为更详细的内容
+### 用 Thunk 编写异步逻辑
 
-- 初始启动：
-  - 使用最顶层的 root reducer 函数创建 Redux store
-  - store 调用一次 root reducer，并将返回值保存为它的初始 state
-  - 当 UI 首次渲染时，UI 组件访问 Redux store 的当前 state，并使用该数据来决定要呈现的内容。同时监听 store 的更新，以便他们可以知道 state 是否已更改。
-- 更新环节：
-  - 应用程序中发生了某些事情，例如用户单击按钮
-  - dispatch 一个 action 到 Redux store，例如 dispatch({type: 'counter/increment'})
-  - store 用之前的 state 和当前的 action 再次运行 reducer 函数，并将返回值保存为新的 state
-  - store 通知所有订阅过的 UI，通知它们 store 发生更新
-  - 每个订阅过 store 数据的 UI 组件都会检查它们需要的 state 部分是否被更新。
-  - 发现数据被更新的每个组件都强制使用新数据重新渲染，紧接着更新网页
+`thunk` 是一种特定类型的 `Redux` 函数，可以包含异步逻辑。
 
-## 什么时候使用 redux
+使用 `thunk` 需要在创建时将 `redux-thunk` middleware（一种 Redux 插件）添加到 Redux store 中。`Redux Toolkit` 的 `configureStore` 函数已经自动为我们配置好了
 
-Redux 可帮助处理共享状态的管理，但有更多的概念需要学习，还有更多的代码需要编写，并要求遵循某些限制
+`Thunk` 是使用两个函数编写的：
 
-Redux 在以下情况下更有用：
+- 一个内部 `thunk` 函数，它以 `dispatch` 和 `getState` 作为参数
+- 外部创建者函数，它创建并返回 thunk 函数
 
-- 在应用的大量地方，都存在大量的状态
-- 应用状态会随着时间的推移而频繁更新
-- 更新该状态的逻辑可能很复杂
-- 中型和大型代码量的应用，很多人协同开发
+```js
+export const incrementAsync = (amount) => (dispatch) => {
+  setTimeout(() => {
+    dispatch(incrementByAmount(amount));
+  }, 1000);
+};
+```
+
+可以像使用普通 Redux action creator 一样使用它们
+
+```js
+store.dispatch(incrementAsync(5));
+```
+
+当您需要进行 AJAX 调用以从服务器获取数据时，可以将该调用放入 `thunk` 中
+
+```js
+// 外部的 thunk creator 函数
+const fetchUserById = (userId) => {
+  // 内部的 thunk 函数
+  return async (dispatch, getState) => {
+    try {
+      // thunk 内发起异步数据请求
+      const user = await userAPI.fetchById(userId);
+      // 但数据响应完成后 dispatch 一个 action
+      dispatch(userLoaded(user));
+    } catch (err) {
+      // 如果过程出错，在这里处理
+    }
+  };
+};
+```
+
+### 使用 useSelector 提取数据
+
+`useSelector` 这个 hooks 让我们的组件从 Redux 的 store 状态树中提取它需要的任何数据。
+
+我们的组件不能直接与 Redux store 对话，因为组件文件中不能引入 store。但是，`useSelector` 负责为我们在幕后与 Redux store 对话。 如果我们传入一个 selector 函数，它会为我们调用 `someSelector(store.getState())`，并返回结果。
+
+```js
+// counterSlice.js
+export const selectCount = (state) => state.counter.value;
+
+const count = useSelector(selectCount);
+```
+
+每当一个 action 被 dispatch 并且 Redux store 被更新时，`useSelector` 将重新运行我们的选择器函数。如果选择器返回的值与上次不同，`useSelector` 将确保我们的组件使用新值重新渲染。
+
+### 使用 useDispatch 来 dispatch action
+
+```js
+const dispatch = useDispatch()
+
+<button
+  className={styles.button}
+  aria-label="Increment value"
+  onClick={() => dispatch(increment())}
+>
+  +
+</button>
+
+```
