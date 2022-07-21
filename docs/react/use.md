@@ -2375,3 +2375,252 @@ let nextId = 3;
 ```
 
 如果你的函数以 `use` 开头，像 `useTasks` 和 `useTasksDispatch`， 这样的函数称为 自定义 Hook，可以在其中使用其他 Hook
+
+## 扩展
+
+### useEffect
+
+#### 定义
+
+`useEffect` 让你在渲染后运行一些代码，以便可以将组件与 React 之外的某些系统同步。例如根据 React 状态控制非 React 组件、设置服务器连接或在组件出现在屏幕上时发送分析日志
+
+React 组件内部的两种逻辑：
+
+- Rendering code（渲染代码）。渲染代码必须是纯的。就像数学公式一样，它应该只计算结果，而不能做任何其他事情。
+
+  > `Rendering code`指「开发者编写的组件渲染逻辑」，最终会返回一段 JSX。比如，如下组件内部就是`Rendering code`：
+
+  ```jsx
+  function App() {
+    const [name, update] = useState("KaSong");
+    return <div>Hello {name}</div>;
+  }
+  ```
+
+- Event handlers（事件处理器）。事件处理程序是组件内的嵌套函数，它们执行操作而不仅仅是计算它们，如提交 HTTP POST 请求以购买产品等。事件处理程序包含“副作用”（它们改变程序的状态）并且由特定的用户操作（例如，单击按钮或键入）引起。
+
+  > `Event handlers`是「组件内部包含的函数」，用于执行用户操作，可以包含副作用。下面这些操作都属于`Event handlers`：
+
+  - 更新 input 输入框
+
+  - 提交表单
+
+  - 导航到其他页面
+
+  如下例子中组件内部的 changeName 方法就属于`Event handlers`：
+
+  ```jsx
+  function App() {
+    const [name, update] = useState("KaSong");
+
+    const changeName = () => {
+      update("KaKaSong");
+    };
+
+    return <div onClick={changeName}>Hello {name}</div>;
+  }
+  ```
+
+**但是，并不是所有副作用都能在 Event handlers 中解决。**
+
+比如，在一个聊天室中，`发送消息`是用户触发的，应该交给`Event handlers`处理。除此之外，聊天室需要随时保持和服务端的长连接，`保持长连接`的行为属于副作用，但并不是用户行为触发的。
+
+对于这种在视图渲染后触发的副作用，就属于 effect，应该交给`useEffect`处理。`useEffect`可以指定由渲染本身而不是由特定事件引起的副作用。`useEffect`在屏幕更新后的渲染过程结束时运行，这是将 React 组件与一些外部系统（如网络或第三方库）同步的好时机。
+
+#### 用法示例
+
+**与外部系统同步**
+
+让我们看看如何使用`useEffect`与外部系统同步，现在我们使用 React 控制一个视频的播放
+
+```jsx
+function VideoPlayer({ src, isPlaying }) {
+  const ref = useRef(null);
+
+  if (isPlaying) {
+    ref.current.play(); // Calling these while rendering isn't allowed.
+  } else {
+    ref.current.pause(); // Also, this crashes.
+  }
+
+  return <video ref={ref} src={src} loop playsInline />;
+}
+```
+
+这段代码会发生错误，它试图在渲染过程中对 DOM 节点做一些事情。在 React 中，渲染应该是对 JSX 的纯粹计算，不应包含修改 DOM 之类的副作用。
+
+解决方案是将副作用包装起来`useEffect`以将其移出渲染计算
+
+```jsx
+import { useEffect, useRef } from "react";
+
+function VideoPlayer({ src, isPlaying }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (isPlaying) {
+      ref.current.play();
+    } else {
+      ref.current.pause();
+    }
+  }, [isPlaying]);
+
+  return <video ref={ref} src={src} loop playsInline />;
+}
+```
+
+同步到 React 状态的“外部系统”是浏览器媒体 API
+
+**获取数据**
+
+如果 Effect 抓取了一些东西，清理函数应该要么中止抓取，要么忽略它的结果：
+
+```jsx
+useEffect(() => {
+  let ignore = false;
+
+  async function startFetching() {
+    const json = await fetchTodos(userId);
+    if (!ignore) {
+      setTodos(json);
+    }
+  }
+
+  startFetching();
+
+  return () => {
+    ignore = true;
+  };
+}, [userId]);
+```
+
+#### 总结
+
+- 与事件不同，`useEffect`是由渲染本身而不是特定交互引起的。
+
+- `useEffect`让您可以将组件与某些外部系统（第三方 API、网络等）同步。
+
+- 当 Strict Mode 开启时，React 会安装组件两次（仅在开发中）以对`useEffect`进行压力测试。
+
+### 你可能不需要 useEffect
+
+`Effect` 是 React 范式的一个逃生口。它们让你“走出” React 并将你的组件与一些外部系统同步，如非 React 小部件、网络或浏览器 DOM。如果不涉及外部系统则不需要 `Effect`。
+
+有两种不需要效果的常见情况：
+
+- 不需要 Effects 来转换数据以进行渲染
+
+- 不需要 Effects 来处理用户事件
+
+#### 根据 props 或 state 更新 state
+
+当一些东西可以从现有的 props 或 state 中计算出来时，不要把它放在 state 中，在渲染期间计算它。
+
+```jsx
+function Form() {
+  const [firstName, setFirstName] = useState("Taylor");
+  const [lastName, setLastName] = useState("Swift");
+
+  // 🔴 Avoid: redundant state and unnecessary Effect
+  const [fullName, setFullName] = useState("");
+  useEffect(() => {
+    setFullName(firstName + " " + lastName);
+  }, [firstName, lastName]);
+
+  // ✅ Good: calculated during rendering
+  const fullName = firstName + " " + lastName;
+  // ...
+}
+```
+
+#### 当道具改变时调整一些状态
+
+有时可能希望在 props 更改时重置或调整部分 state
+
+```js
+function List({ items }) {
+  const [isReverse, setIsReverse] = useState(false);
+  const [selection, setSelection] = useState(null);
+
+  // 🔴 Avoid: Adjusting state on prop change in an Effect
+  useEffect(() => {
+    setSelection(null);
+  }, [items]);
+}
+```
+
+每次 items 更改时，List 及其子组件都会首先呈现一个陈旧的 selection 值。然后 React 将更新 DOM 并运行 Effects。最后`setSelection(null)`调用将导致再次重新渲染 List 及其子组件，再次重新启动整个过程。
+
+我们可以在渲染过程中直接调整状态：
+
+```js
+function List({ items }) {
+  const [isReverse, setIsReverse] = useState(false);
+  const [selection, setSelection] = useState(null);
+
+  // Better: Adjust the state while rendering
+  const [prevItems, setPrevItems] = useState(items);
+  if (items !== prevItems) {
+    setPrevItems(items);
+    setSelection(null);
+  }
+  // ...
+}
+```
+
+setSelection 在渲染期间直接调用。React 将在退出后 List 立即重新渲染 return 语句。到那时，React 还没有渲染 List 子节点或更新 DOM，所以这让 List 子节点跳过渲染陈旧的 selection 值。
+
+#### 通知父组件状态变化
+
+假设一个 Toggle 的组件，内部 isOn 状态可以是 true 或 false。在 Toggle 内部状态发生变化时通知父组件
+
+```js
+function Toggle({ onChange }) {
+  const [isOn, setIsOn] = useState(false);
+
+  // 🔴 Avoid: The onChange handler runs too late
+  useEffect(() => {
+    onChange(isOn);
+  }, [isOn, onChange]);
+
+  function handleClick() {
+    setIsOn(!isOn);
+  }
+}
+```
+
+这并不理想。首先 Toggle 更新它的状态，然后 React 更新屏幕。然后 React 运行 Effect，它调用 onChange 从父组件传递的函数。现在父组件将更新自己的状态，开始另一个渲染过程。
+
+删除 Effect 并在事件处理程序中更新状态
+
+```js
+function Toggle({ onChange }) {
+  const [isOn, setIsOn] = useState(false);
+
+  function updateToggle(nextIsOn) {
+    // ✅ Good: Perform all updates during the event that caused them
+    setIsOn(nextIsOn);
+    onChange(nextIsOn);
+  }
+
+  function handleClick() {
+    updateToggle(!isOn);
+  }
+}
+```
+
+#### 总结
+
+- 如果您可以在渲染期间计算某些内容，则不需要 useEffect。
+
+- 要缓存昂贵的计算，请添加 useMemo 而不是 useEffect.
+
+- 要重置特定的状态位以响应道具更改，请在渲染期间设置它。
+
+- 因为显示组件而需要运行的代码应该在 Effects 中，其余的应该在事件中。
+
+- 如果需要更新多个组件的状态，最好在单个事件期间进行。
+
+- 每当您尝试同步不同组件中的状态变量时，请考虑提升状态。
+
+- 您可以使用 Effects 获取数据，但您需要实现清理以避免竞争条件。
