@@ -135,7 +135,19 @@ Redux 在以下情况下更有用：
 - 更新该状态的逻辑可能很复杂
 - 中型和大型代码量的应用，很多人协同开发
 
-### 示例
+### 注意点
+
+- 诸如唯一的 ID 和一些随机值应该放在 action 里，而不是在 reducer 中去计算。 **Reducer 中永远不应该计算随机值**，因为这会使结果不可预测。
+
+- Redux action 和 state 应该只能包含普通的 JS 值，如对象、数组和基本类型。**不要将类实例、函数或其他不可序列化的值放入 Redux！**。
+
+- action 对象只包含描述发生的事情所需的最少信息，并在 reducer 中进行状态更新计算，这也意味着 reducer 中可以包含计算新状态所需的尽可能多的逻辑。
+
+- 组件应该根据其渲染所需，从 Redux Store 中读取最小量的数据
+
+## 示例
+
+### redux
 
 应用的整体全局状态以对象树的方式存放于单个 **store**。
 
@@ -184,11 +196,9 @@ store.dispatch({ type: "counter/decremented" });
 // {value: 1}
 ```
 
-## Redux Toolkit
+### Redux Toolkit
 
 `Redux Toolkit` 是官方推荐的编写 `Redux` 逻辑的方法。它包含了 `Redux` 核心，并包含对于构建 `Redux` 应用必不可少的软件包和功能。`Redux Toolkit` 建立在最佳实践中，简化了大多数 Redux 任务，防止了常见错误，并使编写 `Redux` 应用程序更加容易。
-
-### 示例
 
 ```jsx
 import { createSlice, configureStore } from "@reduxjs/toolkit";
@@ -236,7 +246,7 @@ store.dispatch(decremented());
 
 `thunk` 是一种特定类型的 `Redux` 函数，可以包含异步逻辑。
 
-使用 `thunk` 需要在创建时将 `redux-thunk` middleware（一种 Redux 插件）添加到 Redux store 中。`Redux Toolkit` 的 `configureStore` 函数已经自动为我们配置好了
+**使用 `thunk` 需要在创建时将 `redux-thunk` middleware（一种 Redux 插件）添加到 Redux store 中。`Redux Toolkit` 的 `configureStore` 函数已经自动为我们配置好了**
 
 `Thunk` 是使用两个函数编写的：
 
@@ -289,7 +299,9 @@ export const selectCount = (state) => state.counter.value;
 const count = useSelector(selectCount);
 ```
 
-每当一个 action 被 dispatch 并且 Redux store 被更新时，`useSelector` 将重新运行我们的选择器函数。如果选择器返回的值与上次不同，`useSelector` 将确保我们的组件使用新值重新渲染。
+每当一个 action 被 dispatch 并且 Redux store 被更新时，`useSelector` 将重新运行我们的选择器函数。**如果选择器返回的值与上次不同，`useSelector` 将确保我们的组件使用新值重新渲染。**
+
+任何需要从 Redux store 读取数据的组件都可以使用 `useSelector` 钩子，并提取它需要的特定数据片段。此外，**许多组件可以同时访问 Redux store 中的相同数据。**
 
 ### 使用 useDispatch 来 dispatch action
 
@@ -304,4 +316,42 @@ const dispatch = useDispatch()
   +
 </button>
 
+```
+
+### 在 reducer 定义一个 prepare 函数
+
+我们 dispatch action 时，如果准备参数的逻辑很复杂，createSlice 允许我们在编写 reducer 时定义一个 prepare 函数。
+
+prepare 函数可以接受多个参数，生成诸如唯一 ID 之类的随机值，并运行需要的任何其他同步逻辑来决定哪些值进入 action 对象。然后它应该返回一个包含 payload 字段的对象。（返回对象还可能包含一个 meta 字段，可用于向 action 添加额外的描述性值，以及一个 error 字段，该字段应该是一个布尔值，指示此 action 是否表示某种错误。）
+
+```js
+const postsSlice = createSlice({
+  name: "posts",
+  initialState,
+  reducers: {
+    postAdded: {
+      reducer(state, action) {
+        state.push(action.payload);
+      },
+      prepare(title, content) {
+        return {
+          payload: {
+            id: nanoid(),
+            title,
+            content,
+          },
+        };
+      },
+    },
+    // other reducers here
+  },
+});
+```
+
+现在我们的组件不必担心 payload 对象是什么样子 - action creator 将负责以正确的方式将它组合在一起。
+
+```js
+const onSavePostClicked = () => {
+  dispatch(postAdded(title, content));
+};
 ```
