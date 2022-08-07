@@ -242,50 +242,6 @@ store.dispatch(decremented());
 
 ## 使用
 
-### 用 Thunk 编写异步逻辑
-
-`thunk` 是一种特定类型的 `Redux` 函数，可以包含异步逻辑。
-
-**使用 `thunk` 需要在创建时将 `redux-thunk` middleware（一种 Redux 插件）添加到 Redux store 中。`Redux Toolkit` 的 `configureStore` 函数已经自动为我们配置好了**
-
-`Thunk` 是使用两个函数编写的：
-
-- 一个内部 `thunk` 函数，它以 `dispatch` 和 `getState` 作为参数
-- 外部创建者函数，它创建并返回 thunk 函数
-
-```js
-export const incrementAsync = (amount) => (dispatch) => {
-  setTimeout(() => {
-    dispatch(incrementByAmount(amount));
-  }, 1000);
-};
-```
-
-可以像使用普通 Redux action creator 一样使用它们
-
-```js
-store.dispatch(incrementAsync(5));
-```
-
-当您需要进行 AJAX 调用以从服务器获取数据时，可以将该调用放入 `thunk` 中
-
-```js
-// 外部的 thunk creator 函数
-const fetchUserById = (userId) => {
-  // 内部的 thunk 函数
-  return async (dispatch, getState) => {
-    try {
-      // thunk 内发起异步数据请求
-      const user = await userAPI.fetchById(userId);
-      // 但数据响应完成后 dispatch 一个 action
-      dispatch(userLoaded(user));
-    } catch (err) {
-      // 如果过程出错，在这里处理
-    }
-  };
-};
-```
-
 ### 使用 useSelector 提取数据
 
 `useSelector` 这个 hooks 让我们的组件从 Redux 的 store 状态树中提取它需要的任何数据。
@@ -322,7 +278,9 @@ const dispatch = useDispatch()
 
 我们 dispatch action 时，如果准备参数的逻辑很复杂，createSlice 允许我们在编写 reducer 时定义一个 prepare 函数。
 
-prepare 函数可以接受多个参数，生成诸如唯一 ID 之类的随机值，并运行需要的任何其他同步逻辑来决定哪些值进入 action 对象。然后它应该返回一个包含 payload 字段的对象。（返回对象还可能包含一个 meta 字段，可用于向 action 添加额外的描述性值，以及一个 error 字段，该字段应该是一个布尔值，指示此 action 是否表示某种错误。）
+prepare 函数可以接受多个参数，生成诸如唯一 ID 之类的随机值，并运行需要的任何其他同步逻辑来决定哪些值进入 action 对象。
+
+然后它应该返回一个包含 `payload` 字段的对象。（返回对象还可能包含一个 `meta` 字段，可用于向 action 添加额外的描述性值，以及一个 `error` 字段，该字段应该是一个布尔值，指示此 action 是否表示某种错误。）
 
 ```js
 const postsSlice = createSlice({
@@ -354,4 +312,203 @@ const postsSlice = createSlice({
 const onSavePostClicked = () => {
   dispatch(postAdded(title, content));
 };
+```
+
+### 用 Thunk 编写异步逻辑
+
+`thunk` 是一种特定类型的 `Redux` 函数，可以包含异步逻辑。
+
+**使用 `thunk` 需要在创建时将 `redux-thunk` middleware（一种 Redux 插件）添加到 Redux store 中。`Redux Toolkit` 的 `configureStore` 函数已经自动为我们配置好了**
+
+#### 使用 Middleware 中间件处理异步逻辑
+
+`Redux store` 对异步逻辑一无所知。它只知道如何同步 dispatch action，通过调用 root reducer 函数更新状态，并通知 UI 某些事情发生了变化。任何异步都必须发生在 store 之外。
+
+Redux 中间件 可以使异步逻辑与 store 交互，它们扩展了 store，并允许：
+
+- dispatch action 时执行额外的逻辑（例如打印 action 的日志和状态）
+
+- 暂停、修改、延迟、替换或停止 dispatch 的 action
+
+- 编写可以访问 dispatch 和 getState 的额外代码
+
+- 教 dispatch 如何接受除普通 action 对象之外的其他值，例如函数和 promise，通过拦截它们并 dispatch 实际 action 对象来代替
+
+**使用中间件的最常见原因是允许不同类型的异步逻辑与 store 交互。** 这允许您编写可以 dispatch action 和检查 store 状态的代码，同时使该逻辑与您的 UI 分开。
+
+Redux 有多种异步中间件，`Redux Toolkit` 的 `configureStore` 功能默认自动设置 `thunk` 中间件
+
+#### Thunk 函数
+
+将 thunk 中间件添加到 Redux store 后，它允许将 thunk 函数 直接传递给 store.dispatch。**调用 thunk 函数时总是将 `(dispatch, getState)` 作为它的参数**，你可以根据需要在 thunk 中使用它们。
+
+为了与 dispatch 普通 action 对象保持一致，我们通常将它们写为 `thunk action creators`，它返回 thunk 函数。这些 `action creator` 可以接受可以在 thunk 中使用的参数。
+
+```js
+export const incrementAsync = (amount) => (dispatch) => {
+  setTimeout(() => {
+    dispatch(incrementByAmount(amount));
+  }, 1000);
+};
+```
+
+可以像使用普通 Redux action creator 一样使用它们
+
+```js
+store.dispatch(incrementAsync(5));
+```
+
+当您需要进行 AJAX 调用以从服务器获取数据时，可以将该调用放入 `thunk` 中
+
+```js
+// 外部的 thunk creator 函数
+const fetchUserById = (userId) => {
+  // 内部的 thunk 函数
+  return async (dispatch, getState) => {
+    try {
+      // thunk 内发起异步数据请求
+      const user = await userAPI.fetchById(userId);
+      // 但数据响应完成后 dispatch 一个 action
+      dispatch(userLoaded(user));
+    } catch (err) {
+      // 如果过程出错，在这里处理
+    }
+  };
+};
+```
+
+Thunk 通常写在 `createSlice` 文件中。`createSlice` 本身对定义 thunk 没有任何特殊支持，因此您应该将它们作为单独的函数编写在同一个切片文件中。这样，他们就可以访问该`createSlice`的普通 `action creator`，并且很容易找到 thunk 的位置。
+
+#### 编写异步 Thunks
+
+`Redux Toolkit` 提供了一个 `createAsyncThunk` API 自动 dispatch 接口请求的`"start/success/failure"` action
+
+`createAsyncThunk` 接收 2 个参数:
+
+- 将用作生成的 action 类型的前缀的字符串
+- 一个“payload creator”回调函数，它应该返回一个包含一些数据的 Promise，或者一个被拒绝的带有错误的 Promise
+
+```js
+import { createAsyncThunk } from "@reduxjs/toolkit";
+import { client } from "../../api/client";
+
+export const fetchPosts = createAsyncThunk("posts/fetchPosts", async () => {
+  const response = await client.get("/fakeApi/posts");
+  return response.data;
+});
+```
+
+在组件中 dispatch thunk
+
+```js
+import React, { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { fetchPosts } from "./postsSlice";
+
+export const PostsList = () => {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (postStatus === "idle") {
+      dispatch(fetchPosts());
+    }
+  }, [postStatus, dispatch]);
+};
+```
+
+1、当调用 `dispatch(fetchPosts())` 的时候，`fetchPosts` 这个 thunk 会首先 dispatch 一个 action 类型为`posts/fetchPosts/pending`
+
+2、一旦 Promise 成功，`fetchPosts` thunk 会接受我们从回调中返回的 `response.data` 数组，并 dispatch 一个 action，action 的 payload 为 posts 数组，action 的 类型为 `posts/fetchPosts/fulfilled`。
+
+我们需要在我们的 reducer 中处理这两个 action。这需要更深入地了解我们一直在使用的 `createSlice` API。
+
+但是，有时切片的 reducer 需要响应 没有 定义到该切片的 reducers 字段中的 action。这个时候就需要使用 slice 中的 `extraReducers` 字段。`extraReducers` 选项是一个接收名为 `builder` 的参数的函数。
+
+```js
+const initialState = {
+  posts: [],
+  status: "idle",
+  error: null,
+};
+
+export const fetchPosts = createAsyncThunk("posts/fetchPosts", async () => {
+  const response = await client.get("/fakeApi/posts");
+  return response.data;
+});
+
+const postsSlice = createSlice({
+  name: "posts",
+  initialState,
+  reducers: {
+    // omit existing reducers here
+  },
+  extraReducers(builder) {
+    builder
+      .addCase(fetchPosts.pending, (state, action) => {
+        state.status = "loading";
+      })
+      .addCase(fetchPosts.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        // Add any fetched posts to the array
+        state.posts = state.posts.concat(action.payload);
+      })
+      .addCase(fetchPosts.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      });
+  },
+});
+```
+
+`Redux Toolkit` 向返回的 Promise 添加了一个 `.unwrap()` 函数，它将返回一个新的 Promise，这个 Promise 在 fulfilled 状态时返回实际的 action.payload 值，或者在 “rejected” 状态下抛出错误。这让我们可以使用正常的 try/catch 逻辑处理组件中的成功和失败。
+
+```js
+import React, { useState } from "react";
+import { addNewPost } from "./postsSlice";
+
+export const AddPostForm = () => {
+  const [addRequestStatus, setAddRequestStatus] = useState("idle");
+
+  const onSavePostClicked = async () => {
+    if (canSave) {
+      try {
+        setAddRequestStatus("pending");
+        await dispatch(addNewPost({ title, content, user: userId })).unwrap();
+      } catch (err) {
+        console.error("Failed to save the post: ", err);
+      } finally {
+        setAddRequestStatus("idle");
+      }
+    }
+  };
+};
+```
+
+#### Thunk 参数
+
+`createAsyncThunk` 只能传递一个参数，无论我们传入的是什么，它都将成为 payload creation 回调的第一个参数。
+
+payload creator 的第二个参数是一个' thunkAPI '对象，包含几个有用的函数和信息：
+
+- dispatch 和 getState：dispatch 和 getState 方法由 Redux store 提供。您可以在 thunk 中使用这些来发起 action，或者从最新的 Redux store 中获取 state （例如在发起 另一个 action 后获取更新后的值）。
+
+- extra：当创建 store 时，用于传递给 thunk 中间件的“额外参数”。
+
+- requestId：该 thunk 调用的唯一随机 ID ，用于跟踪单个请求的状态。
+
+- signal：一个 `AbortController.signal` 函数，可用于取消正在进行的请求。
+
+- rejectWithValue：一个用于当 thunk 收到一个错误时帮助自定义 rejected action 内容的工具。
+
+> 手写 thunk 而不是使用 createAsyncThunk，则 thunk 函数将获取 (dispatch, getState) 作为单独的参数
+
+```js
+export const fetchNotifications = createAsyncThunk(
+  "notifications/fetchNotifications",
+  async (_, { getState }) => {
+    const since = doSomething(getState());
+    const response = await client.get(`/fakeApi/notifications?since=${since}`);
+    return response.notifications;
+  }
+);
 ```
