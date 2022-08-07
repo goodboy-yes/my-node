@@ -251,8 +251,11 @@ store.dispatch(decremented());
 ```js
 // counterSlice.js
 export const selectCount = (state) => state.counter.value;
+export const selectUserById = (state, userId) =>
+  state.users.find((user) => user.id === userId);
 
 const count = useSelector(selectCount);
+const user = useSelector((state) => selectUserById(state, userId));
 ```
 
 每当一个 action 被 dispatch 并且 Redux store 被更新时，`useSelector` 将重新运行我们的选择器函数。**如果选择器返回的值与上次不同，`useSelector` 将确保我们的组件使用新值重新渲染。**
@@ -381,7 +384,7 @@ Thunk 通常写在 `createSlice` 文件中。`createSlice` 本身对定义 thunk
 
 #### 编写异步 Thunks
 
-`Redux Toolkit` 提供了一个 `createAsyncThunk` API 自动 dispatch 接口请求的`"start/success/failure"` action
+`Redux Toolkit` 提供了一个 `createAsyncThunk` API 自动 dispatch 接口请求的`start`/`success`/`failure` action
 
 `createAsyncThunk` 接收 2 个参数:
 
@@ -422,7 +425,7 @@ export const PostsList = () => {
 
 我们需要在我们的 reducer 中处理这两个 action。这需要更深入地了解我们一直在使用的 `createSlice` API。
 
-但是，有时切片的 reducer 需要响应 没有 定义到该切片的 reducers 字段中的 action。这个时候就需要使用 slice 中的 `extraReducers` 字段。`extraReducers` 选项是一个接收名为 `builder` 的参数的函数。
+有时切片的 reducer 需要响应 没有 定义到该切片的 reducers 字段中的 action。这个时候就需要使用 slice 中的 `extraReducers` 字段。`extraReducers` 选项是一个接收名为 `builder` 的参数的函数。
 
 ```js
 const initialState = {
@@ -512,3 +515,42 @@ export const fetchNotifications = createAsyncThunk(
   }
 );
 ```
+
+### 记忆化的 Selector 函数
+
+每次渲染时 `useSelector` 如果返回一个新的引用值，它会强制组件重新渲染。例如
+
+```js
+const postsForUser = useSelector((state) => {
+  const allPosts = selectAllPosts(state);
+  return allPosts.filter((post) => post.user === userId);
+});
+```
+
+`useSelector` 钩子中调用了 `filter()`，以便只返回属于该用户的帖子列表，这意味着 `useSelector` 总会 返回一个新的数组，所以 每次 执行以上操作我们的组件都将重新渲染，即使返回的数据并没有发生改变！
+
+**Reselect 是一个创建记忆化 selector 函数的库**，并且是专门设计用来与 Redux 一起使用的。它有一个 `createSelector` 函数，可以创建记忆化的 selector，只有在输入发生变化时才会重新计算结果。
+
+`Redux Toolkit` 导出了 `createSelector` 函数 ，因此我们可以直接使用它。
+
+```js
+import {
+  createSlice,
+  createAsyncThunk,
+  createSelector,
+} from "@reduxjs/toolkit";
+
+// omit slice logic
+
+export const selectAllPosts = (state) => state.posts.posts;
+
+export const selectPostById = (state, postId) =>
+  state.posts.posts.find((post) => post.id === postId);
+
+export const selectPostsByUser = createSelector(
+  [selectAllPosts, (state, userId) => userId],
+  (posts, userId) => posts.filter((post) => post.user === userId)
+);
+```
+
+`createSelector` 将一个或多个“输入 selector ”函数作为参数，外加一个“输出 selector ”函数。 当我们调用 `selectPostsByUser(state, userId)` 时，`createSelector` 会将所有参数传递给每个输入 selector 。无论这些输入 selector 返回什么，都将成为输出 selector 的参数。

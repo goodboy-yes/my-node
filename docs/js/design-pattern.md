@@ -161,6 +161,76 @@ a.bang = "123";
 alert(b.bang); // 123
 ```
 
+ES6 实现
+
+```js
+class Singleton {
+  constructor() {
+    if (!Singleton.instance) {
+      Singleton.instance = this;
+    }
+    return Singleton.instance;
+  }
+}
+
+const single1 = new Singleton();
+const single2 = new Singleton();
+
+console.log(single1 === single2); // true
+```
+
+单例模式封装
+
+```js
+class SingleTon {
+  constructor(fn) {
+    let singleInstance;
+    function singleConstructor(...args) {
+      // 第一次实例化
+      if (!singleInstance) {
+        singleInstance = new fn(...args);
+      }
+      // 多次实例化直接返回
+      return singleInstance;
+    }
+
+    singleConstructor.prototype = Object.create(fn.prototype);
+    return singleConstructor;
+  }
+}
+
+class Person {
+  constructor(name) {
+    this.name = name;
+  }
+  init() {
+    console.log("My name is ", this.name);
+  }
+}
+const createPerson = new SingleTon(Person);
+const p1 = new createPerson("lebron");
+const p2 = new createPerson("james");
+p1.init(); // My name is  lebron
+p2.init(); // My name is  lebron
+console.log(p1 === p2); // true
+
+class Tool {
+  constructor(number) {
+    this.number = number;
+  }
+
+  init() {
+    console.log("This is tool ", this.number);
+  }
+}
+const createTool = new SingleTon(Tool);
+const t1 = new createTool(1);
+const t2 = new createTool(2);
+t1.init(); // This is tool  1
+t2.init(); // This is tool  1
+console.log(t1 === t2); // true
+```
+
 ## 发布订阅
 
 仿 vue 源码
