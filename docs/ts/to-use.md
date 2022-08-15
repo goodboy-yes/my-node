@@ -499,7 +499,128 @@ type test = Person<Person> // {name: string,age: number}
 
 ### NonNullable
 
-`NonNullable<Type>`会将 `null`和 `undefined`从 `Type` 中排除掉，由剩余类型组成一个新的类型
+`NonNullable<Type>`会将 `null`、`never `和 `undefined`从 `Type` 中排除掉，不会剔除 `void`、`unknow` 类型，由剩余类型组成一个新的类型
+
+```javascript
+type T01 = NonNullable<string | number | undefined>; // string | number
+
+type T02 = NonNullable<(() => string) | string[] | null | undefined>; // (() => string) | string[]
+```
+
+### ConstructorParameters
+
+返回 class 中构造函数参数类型组成的 元组类型
+
+定义
+
+```javascript
+/**
+ * Obtain the parameters of a constructor function type in a tuple
+ */
+type ConstructorParameters<T extends new (...args: any) => any> = T extends new (...args: infer P) => any ? P : never;
+```
+
+使用
+
+```javascript
+class Person {
+  name: string;
+  age: number;
+  weight: number;
+  gender: "man" | "women";
+
+  constructor(name: string, age: number, gender: "man" | "women") {
+    this.name = name;
+    this.age = age;
+    this.gender = gender;
+  }
+}
+
+type ConstructorType = ConstructorParameters<typeof Person>; //  [name: string, age: number, gender: "man" | "women"]
+
+const params: ConstructorType = ["Jack", 20, "man"];
+```
+
+### InstanceType
+
+获取 class 构造函数的返回类型
+
+定义
+
+```javascript
+/**
+ * Obtain the return type of a constructor function type
+ */
+type InstanceType<T extends new (...args: any) => any> = T extends new (...args: any) => infer R ? R : any;
+```
+
+使用
+
+```javascript
+class Person {
+  name: string;
+  age: number;
+  weight: number;
+  gender: "man" | "women";
+
+  constructor(name: string, age: number, gender: "man" | "women") {
+    this.name = name;
+    this.age = age;
+    this.gender = gender;
+  }
+}
+
+type Instance = InstanceType<typeof Person>; // Person
+
+const params: Instance = {
+  name: "Jack",
+  age: 20,
+  weight: 120,
+  gender: "man",
+};
+```
+
+### Parameters
+
+获取函数的参数类型组成的元组
+
+定义
+
+```javascript
+/**
+ * Obtain the parameters of a function type in a tuple
+ */
+type Parameters<T extends (...args: any) => any> = T extends (...args: infer P) => any ? P : never;
+```
+
+使用
+
+```javascript
+type FunctionType = (name: string, age: number) => boolean;
+type FunctionParamsType = Parameters<FunctionType>; // [name: string, age: number]
+const params: FunctionParamsType = ["Jack", 20];
+```
+
+### ReturnType
+
+获取函数的返回值类型
+
+定义
+
+```javascript
+/**
+ * Obtain the return type of a function type
+ */
+type ReturnType<T extends (...args: any) => any> = T extends (...args: any) => infer R ? R : any;
+```
+
+使用
+
+```javascript
+type FunctionType = (name: string, age: number) => boolean | string;
+
+type FunctionReturnType = ReturnType<FunctionType>; // boolean | string
+```
 
 ## 高级概念
 

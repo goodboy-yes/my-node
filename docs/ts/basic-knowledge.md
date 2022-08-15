@@ -590,7 +590,27 @@ function reverse(x: number | string): number | string {
 }
 ```
 
-上例中，我们重复定义了多次函数 `reverse`，前几次都是函数定义，最后一次是函数实现。在编辑器的代码提示中，可以正确的看到前两个提示。
+函数重载的使用方法很简单，就是在需要使用函数重载的地方，多声明几个函数的类型。然后在最后一个函数中进行实现，特别要注意的是，最后实现函数中的类型一定要与上面的类型兼容。在编辑器的代码提示中，可以正确的看到前两个提示。
+
+还有下面的例子
+
+```javascript
+const data = { name: 'licy' };
+function getData(stringify: true): string
+function getData(stringify?: false): object
+function getData(stringify: boolean = false): unknown {
+  if (stringify === true) {
+    return JSON.stringify(data);
+  } else {
+    return data;
+  }
+}
+
+const res1 = getData(); // object
+const res2 = getData(true); // string
+```
+
+值得注意的是由于 TS 是在编译后会将类型抹去生成 JS 代码，而 JS 是没有函数重载这样的能力，所以说这里的函数重载只是类型的重载，方便做类型的提示，实际上还是要在实现函数中进行传入参数的判别，然后返回不同的结果。
 
 **注意，TypeScript 会优先从最前面的函数定义开始匹配，所以多个函数定义如果有包含关系，需要优先把精确的定义写在前面。**
 
@@ -1207,12 +1227,26 @@ class Dog implements DogInterface & CatInterface {
 
 只有对于对象类型，& 才表现为合并的情况，而对于原始类型以及联合类型，& 就真的表现为交集。
 
+A & B 的运算关系可以看成：
+
+- A 和 B 可以相互赋值 => 目前只有 any 可以满足这种情况
+- A 可以赋值给 B，B 不能赋值给 A => A
+
+- B 可以赋值给 A，A 不能赋值给 A => B
+
+- A 和 B 不存在可以赋值的关系 => never
+
 ```js
 // 'a'
-type _T1 = ("a" | "b") & ("a" | "d" | "e" | "f");
+type _T1 = ("a" | "b") & ("a" | "d" | "e" | "f"); // a
 
 // never，因为 string 和 number 哪有交集啊
 type _T1 = string & number;
+
+type T1 = number & string; // never
+type T2 = number & unknown; // number
+type T3 = number & any; // any
+type T4 = number & never; // never
 ```
 
 & 适用于对象合并场景，如下将声明一个函数，将两个对象合并成一个对象并返回：
