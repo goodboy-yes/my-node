@@ -740,20 +740,58 @@ type MyPartial<T> = { [K in keyof T]?: T[K] };
 type OptionalInfo = MyPartial<IInfo>;
 ```
 
-### 逆变
+### 协变与逆变
 
-先看一个场景
+在了解协变与逆变之前我们需要知道一个概念——子类型。我们前面提到过 string 可以赋值给 unknown 那么就可以理解为 string 是 unknown 的子类型。正常情况下这个关系即子类型可以赋值给父类型是不会改变的我们称之为**协变**，但是在某种情况下两者会出现颠倒我们称这种关系为**逆变**。
 
-```ts
-let a!: { a: string; b: number };
-let b!: { a: string };
+```javascript
+interface Animal {
+  name: string;
+}
 
-b = a;
+interface Cat extends Animal {
+  catBark: string;
+}
+
+interface OrangeCat extends Cat {
+  color: "orange";
+}
+
+// 以上从属关系
+// OrangeCat 是 Cat 的子类型
+// Cat 是 Animal 的子类型
+// 同理 OrangeCat 也是 Animal 的子类型
+
+const cat: Cat = {
+  name: "猫猫",
+  catBark: "喵~~",
+};
+const animal: Animal = cat; // no error
 ```
 
-上述代码因为 a 的类型定义中完全包括 b 的类型定义，所以 a 类型完全是可以赋值给 b 类型，这被称为**类型兼容性**。通俗来说也就是多的可以赋值给少的
+上述代码因为 Cat 的类型定义中完全包括 Animal 的类型定义，所以 Cat 类型完全是可以赋值给 Animal 类型，这被称为**类型兼容性**。通俗来说也就是多的可以赋值给少的
 
-再看下面代码
+再看一种情况，假设我有类型 `type FnCat = (value: Cat) => Cat;` 请问下面四个谁是它的子类型，即以下那个类型可以赋值给它。
+
+```javascript
+type FnAnimal = (value: Animal) => Animal;
+type FnOrangeCat = (value: OrangeCat) => OrangeCat;
+type FnAnimalOrangeCat = (value: Animal) => OrangeCat;
+type FnOrangeCatAnima = (value: OrangeCat) => Animal;
+
+type RES1 = FnAnimal extends FnCat ? true : false; // false
+type RES2 = FnOrangeCat extends FnCat ? true : false; // false
+type RES3 = FnAnimalOrangeCat extends FnCat ? true : false; // true
+type RES4 = FnOrangeCatAnima extends FnCat ? true : false; // false
+```
+
+**返回值：** 假设使用了 FnCat 返回值的 cat.catBark 属性，如果返回值是 Animal 则不会有这个属性，会导致调用出错。估计返回值只能是 OrangeCat。
+
+**参数：** 假设传入的函数中使用了 orangeCat.color 但是，对外的类型参数还是 Cat 没有 color 属性，就会导致该函数运行时内部报错。
+
+**故可以得出结论：返回值是协变，入参是逆变。**
+
+#### 逆变
 
 ```ts
 let fn1!: (a: string, b: number) => void;
@@ -804,7 +842,7 @@ someThing((param: Parent) => param); // correct
 
 从另一个角度解释，someThing 会在 cb 函数调用时传入一个 Son 参数的实参。所以当我们传入 `someThing((param: Parent) => param)` 时，相当于在 something 函数内部调用 `(param: Parent) => param` 时会根据 someThing 中 callback 的定义传入一个 Son 。Son 是 Parent 的子类，涵盖所有 Parent 的公共属性方法，自然也是满足条件的。
 
-### 协变
+#### 协变
 
 函数类型赋值兼容时函数的返回值就是典型的协变场景
 
