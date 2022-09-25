@@ -2624,3 +2624,49 @@ function Toggle({ onChange }) {
 - 每当您尝试同步不同组件中的状态变量时，请考虑提升状态。
 
 - 您可以使用 Effects 获取数据，但您需要实现清理以避免竞争条件。
+
+### re-render 指南
+
+#### 什么是 re-render
+
+每当提及 React 的性能时，我们需要特别关注下面两个渲染阶段：
+
+- initial render：组件第一次在页面上进行渲染
+
+- re-render：已经在页面上渲染的组件进行第二次或后续多次渲染
+
+当页面更新数据的时候，React 组件就会发生 re-render，比如用户与页面之间产生交互、异步请求数据或者订阅的外部数据更新等这些场景都会导致 re-render。那些没有任何异步数据更新的非交互式应用程序永远不会发生 re-render
+
+#### 必要或非必要的 re-render
+
+**必要的 re-render：** 组件发生重新渲染的原因是数据发生了变化，组件要把最新的数据渲染到页面上。例如，用户在输入框中输入文字，组件在每次按键时通过状态管理完成更新和渲染，对于这个组件来说这就是必要的 re-render。
+
+**不必要的 re-render：** 由于错误的实现方式，某个组件的 re-render 导致了整个页面全部重新渲染，这就是不必要的 re-render。比如，用户在输入框中输入文字，并且在每次按键时整个页面都进行了渲染，对于整个页面来说这就是非必要的 re-render。
+
+#### 什么时候 React 组件会发生 re-render
+
+组件发生重新渲染有四个原因：状态更改、父级（或子级）重新渲染、context 变化（当 Context Provider 中的值发生变化时，使用该 Context 的所有组件都要 re-render，即使它们并没有使用发生变化的那部分数据）以及 hooks 变化（hooks 中发生的一切都 “属于” 使用它的组件。因此 Context 和 State 的更新规则同样也适用）。
+
+这里有一个很大的误区：当组件的 props 改变时，组件会重新渲染。就其本身而言，这并不是真的
+
+未被 memo 包裹的组件 re-render 时，组件的 props 是否发生变化并不重要。父组件的重新渲染触发了子组件的重新渲染，与子组件的 props 是否变化无关。只有那些使用了 React.memo 和 useMemo 的组件，props 的变化才会触发组件的重新渲染。
+
+#### 避免 re-render
+
+- 不要在组件的渲染函数中创建组件，在每次重新渲染时，React 都会重新装载这个组件（即销毁它并从头开始重新创建），这比正常的重新渲染要慢得多
+
+- state 下移到子组件中，这样大组件就不会因为这些状态的更改而发生重新渲染。
+
+- 组件或 children 作为 props，较复杂的组件作为 children props 传递，从较小的组件角度来看，children 只是 props，因此它们不会受到状态更改的影响，因此不会重新渲染。
+
+- 使用 React.memo 和 useMemo/useCallback
+
+- 对作为 props 或 children 的组件使用 React.memo
+
+- 避免使用随机数作为 key 值
+
+- 将 Provider 的值做 memoize 处理，如果 Context Provider 没有在页面的根节点上，那么祖先节点的变化也会导致它被重新渲染，所以它的值也应该被 memoize。
+
+- 对于那些部分使用了 Context 值的组件，使用高阶组件和 React.memo 可以伪造出 Context selector
+
+参考资料：[一份详尽的 React re-render 指南](https://mp.weixin.qq.com/s?__biz=MjM5MTA1MjAxMQ==&mid=2651257502&idx=1&sn=88e7dbe3cbb1ebe9ff8521a40711c1ba&scene=21#wechat_redirect)
