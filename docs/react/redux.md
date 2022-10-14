@@ -554,3 +554,17 @@ export const selectPostsByUser = createSelector(
 ```
 
 `createSelector` 将一个或多个“输入 selector ”函数作为参数，外加一个“输出 selector ”函数。 当我们调用 `selectPostsByUser(state, userId)` 时，`createSelector` 会将所有参数传递给每个输入 selector 。无论这些输入 selector 返回什么，都将成为输出 selector 的参数。
+
+在这种情况下，我们知道我们需要将帖子数组和用户 ID 作为输出 selector 的两个参数。我们可以重用现有的 `selectAllPosts` selector 来提取帖子数组。由于用户 ID 是我们传递给 `selectPostsByUser` 的第二个参数，我们可以编写一个只返回 userId 的小 selector。
+
+```javascript
+export const UserPage = ({ match }) => {
+  const { userId } = match.params;
+
+  const user = useSelector((state) => selectUserById(state, userId));
+
+  const postsForUser = useSelector((state) => selectPostsByUser(state, userId));
+
+  // omit rendering logic
+};
+```
