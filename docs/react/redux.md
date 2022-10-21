@@ -147,7 +147,7 @@ Redux 在以下情况下更有用：
 
 ## 示例
 
-### redux
+### Redux
 
 应用的整体全局状态以对象树的方式存放于单个 **store**。
 
@@ -240,7 +240,38 @@ store.dispatch(decremented());
 // {value: 1}
 ```
 
-## 使用
+## Redux 使用
+
+### Store
+
+store 有以下几个职责:
+
+- 在内部保存当前应用程序 state
+- 通过 `store.getState()` 访问当前 state;
+- 通过 `store.dispatch(action)` 更新状态;
+- 通过 `store.subscribe(listener`) 注册监听器回调;
+- 通过 `store.subscribe(listener)` 返回的 unsubscribe 函数注销监听器。
+
+Redux 应用程序中只有一个 store。当你想要拆分数据处理逻辑时，你将使用 `reducer composition` 并创建多个可以组合在一起 reducer，而不是创建单独的 store。
+
+### 使用 combineReducers
+
+`combineReducers` 接受一个对象，其中键名将成为根 state 对象中的键，值是描述如何更新 Redux 状态的 `slice reducer` 函数。
+
+```js
+import { combineReducers } from "redux";
+
+import todosReducer from "./features/todos/todosSlice";
+import filtersReducer from "./features/filters/filtersSlice";
+
+const rootReducer = combineReducers({
+  // 定义一个名为`todos`的顶级状态字段，由`todosReducer`处理
+  todos: todosReducer,
+  filters: filtersReducer,
+});
+
+export default rootReducer;
+```
 
 ### 使用 useSelector 提取数据
 
@@ -276,6 +307,8 @@ const dispatch = useDispatch()
 </button>
 
 ```
+
+## Redux Toolkit 使用
 
 ### 在 reducer 定义一个 prepare 函数
 
