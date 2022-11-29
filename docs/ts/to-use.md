@@ -928,3 +928,52 @@ interface Tmp {
   processedResult: string;
 }
 ```
+
+### 使用映射类型（keyof）对索引类型做变换
+
+```ts
+type SplitObj<Obj> = {
+  [Key in keyof Obj]: {
+    [Key2 in Key]: Obj[Key2];
+  };
+}[keyof Obj];
+
+// 使用
+type Obj = {
+  name: string;
+  age: number;
+  height: number;
+};
+// type res = {name:string}|{age:number}|{height:number}
+type splitobj<Obj>
+```
+
+### 使用 extends 做类型判断
+
+`Key extends string` 可判断 key 是否是 string 类型
+
+```ts
+type DFS<Obj> = {
+  [Key in keyof Obj]: Key extends string
+    ? Obj[Key] extends Record<string, any>
+      ? Key | `${Key}.${DFS<Obj[Key]>}`
+      : Key
+    : never;
+}[keyof Obj];
+
+// 使用
+type Template = {
+  aaa: string;
+  bbb: {
+    cc: {
+      dd: string;
+    };
+  };
+  eee: {
+    ff: string;
+    gg: number;
+  };
+};
+// "aaa" | "bbb" | "eee" | "bbb.cc" | "bbb.cc.dd" | "eee.ff"| "eee.gg"
+type res = DFS<Template>;
+```
