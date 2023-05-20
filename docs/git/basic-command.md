@@ -122,3 +122,28 @@ git cherry-pick --abort
 # 退出 cherry-pick。保留已经cherry-pick成功的 commit，并退出cherry-pick流程
 git cherry-pick --quit
 ```
+
+## git checkout
+
+```bash
+# 用于创建并切换到一个名为 feat/X 的新分支。
+git checkout -b feature-branch
+# 从一个已经存在的分支上创建一个新的分支
+git checkout -b feature-branch main
+```
+
+```bash
+git checkout <pathspec>
+```
+
+这里，`pathspec` 可以是任何有效的路径说明符，例如：. 对于当前目录、`path/to/file`、`file.extension`，甚至是正则表达式。
+
+这将清除对指定文件的所有未暂存更改并恢复当前分支的文件的未修改版本。此命令不会影响暂存文件——只会清除未暂存的更改。
+
+例如，如果想清除当前目录中所有未暂存的更改并从头开始，最简单的方法是使用 `git checkout .`
+
+```bash
+git checkout origin/master -- <pathspec>
+```
+
+我们也可以使用 `git checkout` 来恢复文件的本地或远程版本。这个命令的作用是将远程分支 `origin/master` 上指定的文件 `pathspec` 签出到本地分支上。该命令会用远程分支上的文件覆盖本地分支上的同名文件，即用远程分支的版本替换本地分支的版本，从而确保本地分支与远程分支保持同步。

@@ -23,11 +23,6 @@ reset 用于回退版本，有三种模式，soft、mixed、hard
 
 `reset` 如果不加参数，那么默认使用 `--mixed` 参数。它的行为是：保留工作目录，并且清空暂存区。也就是说，工作目录的修改、暂存区的内容以及由 reset 所导致的新的文件差异，都会被放进工作目录。简而言之，就是「把所有差异都混合（mixed）放在工作目录中」。
 
-```bash
-git reset --<参数> HEAD^ //回退到上一个提交
-git reset --<参数> <id> //回退到指定提交
-```
-
 ### 总结
 
 实质上，`reset` 这个指令虽然可以用来撤销 commit ，但它的实质行为并不是撤销，而是移动 HEAD ，并且「捎带」上 HEAD 所指向的 branch（如果有的话）。
@@ -39,6 +34,14 @@ git reset --<参数> <id> //回退到指定提交
 - **--hard**：要放弃目前本地的所有改变,抛弃目标节点后的所有 commit
 - **--soft**：想合并「当前节点」与「reset 目标节点」之间不具太大意义的 commit 记录，假如你需要把频繁提交的 commit 整合成一个 commit 的时候
 - **--mixed（默认）**：与--soft 类似，再次提交多了 git add 添加到暂存区的操作
+
+```bash
+git reset --<参数> HEAD^ //回退到上一个提交
+git reset --<参数> HEAD~n //回退到前n次提交
+git reset --<参数> <hash-id> //回退到指定提交
+git reset --<参数> <someOtherBranch> //重置本地分支以指向另一个分支
+git reset --hard origin/master //将本地 master 分支重置为远程 master 分支，用于舍弃本地在master做的提交
+```
 
 ## git revert
 

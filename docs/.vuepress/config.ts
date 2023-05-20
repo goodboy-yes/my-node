@@ -106,6 +106,7 @@ export default defineUserConfig<DefaultThemeOptions>({
           "/git/commit-standard",
           "/git/reset-and-revert",
           "/git/commit-amend",
+          "/git/git-rebase",
         ],
       },
       {
