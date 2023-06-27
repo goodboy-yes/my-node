@@ -200,6 +200,11 @@ store.dispatch({ type: "counter/decremented" });
 
 `Redux Toolkit` 是官方推荐的编写 `Redux` 逻辑的方法。它包含了 `Redux` 核心，并包含对于构建 `Redux` 应用必不可少的软件包和功能。`Redux Toolkit` 建立在最佳实践中，简化了大多数 Redux 任务，防止了常见错误，并使编写 `Redux` 应用程序更加容易。
 
+Redux Toolkit 有两个关键 API ，可简化常见操作：
+
+- `configureStore` 使用单个函数调用设置一个配置良好的 Redux 存储，包括 combining reducers、添加 thunk 中间件以及设置 Redux DevTools 集成。
+- `createSlice` 允许编写使用 Immer 库的 reducers，它还会自动为每个 reducers 生成 action creator functions，并根据 reducer 的名称在内部生成 action type 字符串。它与 TypeScript 配合得很好。
+
 ```jsx
 import { createSlice, configureStore } from "@reduxjs/toolkit";
 
@@ -222,6 +227,7 @@ const counterSlice = createSlice({
   },
 });
 
+// 每个 case reducer 函数会生成对应的 Action creators
 export const { incremented, decremented } = counterSlice.actions;
 
 const store = configureStore({
@@ -240,6 +246,64 @@ store.dispatch(decremented());
 // {value: 1}
 ```
 
+### 在 React 组件中结合 React-Redux
+
+我们可以使用 React-Redux 钩子让 React 组件与 Redux store 交互。
+
+```jsx
+import React from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { decrement, increment } from "./counterSlice";
+
+export function Counter() {
+  const count = useSelector((state) => state.counter.value);
+  const dispatch = useDispatch();
+
+  return (
+    <div>
+      <div>
+        <button
+          aria-label="Increment value"
+          onClick={() => dispatch(increment())}
+        >
+          Increment
+        </button>
+        <span>{count}</span>
+        <button
+          aria-label="Decrement value"
+          onClick={() => dispatch(decrement())}
+        >
+          Decrement
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+我们并没有导入 store，那么这些 hooks 怎么知道要与哪个 Redux store 对话呢？
+
+为了让像 `useSelector` 这样的 hooks 正常工作，我们需要使用一个名为 `<Provider>` 的组件在幕后传递 Redux store，以便他们可以访问它。
+
+```jsx
+import React from "react";
+import ReactDOM from "react-dom";
+import "./index.css";
+import App from "./App";
+import store from "./app/store";
+import { Provider } from "react-redux";
+import * as serviceWorker from "./serviceWorker";
+
+ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById("root")
+);
+```
+
+现在，任何调用 `useSelector` 或 `useDispatch` 的 React 组件都可以访问 `<Provider>` 中的 store。
+
 ## Redux 使用
 
 ### Store
@@ -253,6 +317,26 @@ store 有以下几个职责:
 - 通过 `store.subscribe(listener)` 返回的 unsubscribe 函数注销监听器。
 
 Redux 应用程序中只有一个 store。当你想要拆分数据处理逻辑时，你将使用 `reducer composition` 并创建多个可以组合在一起 reducer，而不是创建单独的 store。
+
+### 加载初始 State
+
+createStore 也可以接受 preloadedState 值作为其第二个参数。可以使用它在创建 store 时添加初始数据
+
+```jsx
+import { createStore } from "redux";
+import rootReducer from "./reducer";
+
+let preloadedState;
+const persistedTodosString = localStorage.getItem("todos");
+
+if (persistedTodosString) {
+  preloadedState = {
+    todos: JSON.parse(persistedTodosString),
+  };
+}
+
+const store = createStore(rootReducer, preloadedState);
+```
 
 ### 使用 combineReducers
 
@@ -271,6 +355,150 @@ const rootReducer = combineReducers({
 });
 
 export default rootReducer;
+```
+
+### 使用 Enhancers 创建 Store
+
+`createStore` 可以多带一个参数，用于自定义 store 的能力并新增功能。
+
+`Redux store` 是使用一种叫做 `store enhancer` 的东西来定制的。`store enhancer` 就像一个特殊版本的“ createStore ”，它添加了另一个包裹原始 `Redux store` 的层。然后，增强的 store 可以通过提供其自定义 store 的 dispatch、getState 和 subscribe 函数而不是原始版本来改变 store 的行为方式
+
+```js
+import { createStore } from "redux";
+import rootReducer from "./reducer";
+
+const sayHiOnDispatch = (createStore) => {
+  return (rootReducer, preloadedState, enhancers) => {
+    const store = createStore(rootReducer, preloadedState, enhancers);
+
+    function newDispatch(action) {
+      const result = store.dispatch(action);
+      console.log("Hi!");
+      return result;
+    }
+
+    return { ...store, dispatch: newDispatch };
+  };
+};
+const store = createStore(rootReducer, undefined, sayHiOnDispatch);
+
+export default store;
+```
+
+`sayHiOnDispatch enhancer` 用自己的专用版本 dispatch 包装了原始的 `store.dispatch` 函数。 当我们调用 `store.dispatch()` 时，我们实际上是从 `sayHiOnDispatch` 调用包装函数，它调用原始函数然后打印 'Hi'。
+
+Redux 核心包含一个 compose 函数，可用于将多个 enhancer 合并在一起
+
+```js
+import { createStore, compose } from "redux";
+import rootReducer from "./reducer";
+import {
+  sayHiOnDispatch,
+  includeMeaningOfLife,
+} from "./exampleAddons/enhancers";
+
+const composedEnhancer = compose(sayHiOnDispatch, includeMeaningOfLife);
+
+const store = createStore(rootReducer, undefined, composedEnhancer);
+
+export default store;
+```
+
+### 使用 Middleware
+
+Redux 使用一种称为 middleware 的特殊插件来让我们自定义 dispatch 函数。
+
+**Redux middleware 在 dispatch action 和到达 reducer 之间提供第三方扩展点。** 人们使用 Redux middleware 进行日志记录、崩溃报告、异步 API 通信、路由等。
+
+Redux Middleware 实际上是在 Redux 内置的一个非常特殊的 store enhancer 之上实现的，称为 `applyMiddleware`
+
+Redux middleware 被编写为一系列的三个嵌套函数
+
+```js
+// ./exampleAddons/middleware
+function exampleMiddleware(storeAPI) {
+  return function wrapDispatch(next) {
+    return function handleAction(action) {
+      // 在这里做任何事情：用 next(action) 向前传递 action，
+      // 或者使用 storeAPI.dispatch(action) 重启管线
+      // 这里也可以使用 storeAPI.getState()
+      return next(action);
+    };
+  };
+}
+
+export const print1 = (storeAPI) => (next) => (action) => {
+  console.log("1");
+  return next(action);
+};
+
+export const print2 = (storeAPI) => (next) => (action) => {
+  console.log("2");
+  return next(action);
+};
+
+export const print3 = (storeAPI) => (next) => (action) => {
+  console.log("3");
+  return next(action);
+};
+```
+
+```js
+import { createStore, applyMiddleware } from "redux";
+import rootReducer from "./reducer";
+import { print1, print2, print3 } from "./exampleAddons/middleware";
+
+const middlewareEnhancer = applyMiddleware(print1, print2, print3);
+
+// 将 enhancer 为第二参数，因为没有 preloadedState
+const store = createStore(rootReducer, middlewareEnhancer);
+
+export default store;
+```
+
+```js
+import store from "./store";
+
+store.dispatch({ type: "todos/todoAdded", payload: "Learn about actions" });
+// log: '1'
+// log: '2'
+// log: '3'
+```
+
+**Middleware 围绕 store 的 dispatch 方法形成管线。**当我们调用 store.dispatch(action) 时，实际上 调用了管线中的第一个 Middleware。 Middleware 会检查 action 是否是它关心的特定 type，就像 reducer 一样。如果它是匹配到的 type，Middleware 可能会运行一些自定义逻辑。否则，它将 dispatch 传递给管线中的下一个 Middleware。
+
+不像 reducer，middleware 内部可能有副作用，包括超时和其他异步逻辑。
+
+在这种情况下，action 通过：
+
+- print1 middleware（我们将其视为 store.dispatch）
+- print2 middleware
+- print3 middleware
+- 原来的 store.dispatch
+- store 中的根 reducer
+
+而且由于这些都是函数调用，它们都从该调用堆栈中 返回。因此，print1 middleware 是第一个运行的，也是最后一个完成的。
+
+### 将 DevTools 添加到 Store
+
+DevTools 需要添加特定的 store enhancer 才能实现这一点。
+
+有一个名为 “redux-devtools-extension” 的 NPM 包可以处理复杂的部分。该包导出了一个专门的 `composeWithDevTools` 函数，我们可以使用它来代替原始的 Redux `compose` 函数。
+
+```js
+import { createStore, applyMiddleware } from "redux";
+import { composeWithDevTools } from "redux-devtools-extension";
+import rootReducer from "./reducer";
+import { print1, print2, print3 } from "./exampleAddons/middleware";
+
+const composedEnhancer = composeWithDevTools(
+  // 示例：在此处添加你实际要使用的任何 middleware
+  applyMiddleware(print1, print2, print3)
+  // 其他 store enhancers（如果有）
+);
+
+const store = createStore(rootReducer, composedEnhancer);
+export default store;
 ```
 
 ### 使用 useSelector 提取数据
@@ -307,6 +535,20 @@ const dispatch = useDispatch()
 </button>
 
 ```
+
+### action 对象内部组织字段的建议
+
+Redux store 本身并不关心 action 中放入了哪些字段。它只关心 action.type 是否存在并具有值，
+
+但是，如果每个 action 对其数据字段使用不同的字段名称，则很难提前知道每个 reducer 中需要处理哪些字段
+
+Redux 社区提出 `Flux Standard Actions` 约定（简称 FSA），FSA 模式已经在 Redux 社区中被广泛使用
+
+FSA 公约规定：
+
+- 如果 action 对象需要包含任何实际数据，则数据值应始终放在 action.payload 中
+- action 还可以具有包含额外描述性数据的 action.meta 字段
+- action 也可以具有包含错误信息的 action.error 字段
 
 ## Redux Toolkit 使用
 
