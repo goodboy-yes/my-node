@@ -114,6 +114,10 @@ export default defineUserConfig<DefaultThemeOptions>({
         children: ["/webpack/principle-analysis"],
       },
       {
+        text: "微信小程序",
+        children: ["/winxin-miniprogram/introduction"],
+      },
+      {
         text: "开发实践",
         children: [
           "/development-practice/functional-programming",

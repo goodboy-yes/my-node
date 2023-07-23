@@ -19,6 +19,31 @@ git config user.email "Author Email"
 git commit --author="author <email@address.com>"
 ```
 
+## git 设置代理
+
+### 设置代理
+
+```bash
+git config --global http.proxy 127.0.0.1:7890
+git config --global https.proxy 127.0.0.1:7890
+```
+
+7890 是我们代理软件（如 clash）的端口
+
+### 取消代理
+
+```bash
+git config --global --unset http.proxy
+git config --global --unset https.proxy
+```
+
+### 查看代理
+
+```bash
+git config --global --get http.proxy
+git config --global --get http2.proxy
+```
+
 ## 基本命令
 
 - `git init`：用于初始化一个 Git 仓库
