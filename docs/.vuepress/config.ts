@@ -131,7 +131,11 @@ export default defineUserConfig<DefaultThemeOptions>({
       },
       {
         text: "知识点",
-        children: ["/knowledge-point/algorithm", "/knowledge-point/network"],
+        children: [
+          "/knowledge-point/algorithm",
+          "/knowledge-point/network",
+          "/knowledge-point/character-encoding",
+        ],
       },
       {
         text: "发展建议",

@@ -465,7 +465,7 @@ store.dispatch({ type: "todos/todoAdded", payload: "Learn about actions" });
 // log: '3'
 ```
 
-**Middleware 围绕 store 的 dispatch 方法形成管线。**当我们调用 store.dispatch(action) 时，实际上 调用了管线中的第一个 Middleware。 Middleware 会检查 action 是否是它关心的特定 type，就像 reducer 一样。如果它是匹配到的 type，Middleware 可能会运行一些自定义逻辑。否则，它将 dispatch 传递给管线中的下一个 Middleware。
+**Middleware 围绕 store 的 dispatch 方法形成管线。** 当我们调用 store.dispatch(action) 时，实际上 调用了管线中的第一个 Middleware。 Middleware 会检查 action 是否是它关心的特定 type，就像 reducer 一样。如果它是匹配到的 type，Middleware 可能会运行一些自定义逻辑。否则，它将 dispatch 传递给管线中的下一个 Middleware。
 
 不像 reducer，middleware 内部可能有副作用，包括超时和其他异步逻辑。
 
