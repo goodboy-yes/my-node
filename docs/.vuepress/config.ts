@@ -115,7 +115,10 @@ export default defineUserConfig<DefaultThemeOptions>({
       },
       {
         text: "微信小程序",
-        children: ["/winxin-miniprogram/introduction"],
+        children: [
+          "/winxin-miniprogram/introduction",
+          "/winxin-miniprogram/develop",
+        ],
       },
       {
         text: "开发实践",
