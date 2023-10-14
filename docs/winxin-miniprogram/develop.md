@@ -86,7 +86,7 @@ Page({
   {{idx}}: {{itemName.message}}
 </view>
 ```
-类似 block wx:if ，也可以将 wx:for 用在 <block/> 标签上，以渲染一个包含多节点的结构块。例如：
+类似 block wx:if ，也可以将 wx:for 用在 `<block/>` 标签上，以渲染一个包含多节点的结构块。例如：
 
 ```html 
 <block wx:for="{{[1, 2, 3]}}">
