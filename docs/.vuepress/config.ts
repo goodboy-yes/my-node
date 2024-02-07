@@ -121,6 +121,15 @@ export default defineUserConfig<DefaultThemeOptions>({
         ],
       },
       {
+        text: "数据结构与算法",
+        children: [
+          "/dataStructure-algorithms/complexity-analysis",
+          "/dataStructure-algorithms/array",
+          "/dataStructure-algorithms/linked-list",
+          "/dataStructure-algorithms/stack",
+        ],
+      },
+      {
         text: "开发实践",
         children: [
           "/development-practice/functional-programming",
