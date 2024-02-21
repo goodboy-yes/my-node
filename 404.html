@@ -1,15 +1,37 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="generator" content="VuePress 2.0.0-beta.29">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="generator" content="VuePress 2.0.0-rc.8" />
+    <style>
+      :root {
+        --c-bg: #fff;
+      }
+      html.dark {
+        --c-bg: #22272e;
+      }
+      html,
+      body {
+        background-color: var(--c-bg);
+      }
+    </style>
+    <script>
+      const userMode = localStorage.getItem('vuepress-color-scheme')
+      const systemDarkMode =
+        window.matchMedia &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches
+      if (userMode === 'dark' || (userMode !== 'light' && systemDarkMode)) {
+        document.documentElement.classList.toggle('dark', true)
+      }
+    </script>
     <title>Gkc's notes</title><meta name="description" content="Record knowledge">
-    <link rel="modulepreload" href="/my-notes/assets/app.972a2f76.js"><link rel="modulepreload" href="/my-notes/assets/404.html.bee13de6.js"><link rel="modulepreload" href="/my-notes/assets/plugin-vue_export-helper.21dcd24c.js"><link rel="modulepreload" href="/my-notes/assets/404.html.1b2ff6f8.js">
-    <link rel="stylesheet" href="/my-notes/assets/style.4b916bd5.css">
+    <link rel="preload" href="/my-notes/assets/style-DUHaMXWK.css" as="style"><link rel="stylesheet" href="/my-notes/assets/style-DUHaMXWK.css">
+    <link rel="modulepreload" href="/my-notes/assets/app-ZrMgA43q.js"><link rel="modulepreload" href="/my-notes/assets/404.html-DhlB78Gh.js">
+    <link rel="prefetch" href="/my-notes/assets/index.html-D_EyeR4F.js" as="script"><link rel="prefetch" href="/my-notes/assets/index.html-D04AGVQr.js" as="script"><link rel="prefetch" href="/my-notes/assets/aspect-ratio.html-otHNUbJh.js" as="script"><link rel="prefetch" href="/my-notes/assets/bfc.html-DX2iyQh3.js" as="script"><link rel="prefetch" href="/my-notes/assets/compositing-layer.html-B07loW-l.js" as="script"><link rel="prefetch" href="/my-notes/assets/knowledge-points.html-CFud6uSp.js" as="script"><link rel="prefetch" href="/my-notes/assets/pseudo-classes-and-elements.html-axpiLyvz.js" as="script"><link rel="prefetch" href="/my-notes/assets/skill.html-BurGqaak.js" as="script"><link rel="prefetch" href="/my-notes/assets/array.html-2fHT46md.js" as="script"><link rel="prefetch" href="/my-notes/assets/complexity-analysis.html-BSQXZJEm.js" as="script"><link rel="prefetch" href="/my-notes/assets/linked-list.html-DbnvvETR.js" as="script"><link rel="prefetch" href="/my-notes/assets/stack.html-AEozZZ6r.js" as="script"><link rel="prefetch" href="/my-notes/assets/functional-programming.html-W3iRst7i.js" as="script"><link rel="prefetch" href="/my-notes/assets/interactive.html-5VFm6sT9.js" as="script"><link rel="prefetch" href="/my-notes/assets/refactoring.html-GlnA1RjI.js" as="script"><link rel="prefetch" href="/my-notes/assets/technical-scheme.html-BhAV168B.js" as="script"><link rel="prefetch" href="/my-notes/assets/index.html-CdlFVgKr.js" as="script"><link rel="prefetch" href="/my-notes/assets/index.html-h9fYGMB0.js" as="script"><link rel="prefetch" href="/my-notes/assets/basic-command.html-C4lza4i3.js" as="script"><link rel="prefetch" href="/my-notes/assets/commit-amend.html-Xdegt9jG.js" as="script"><link rel="prefetch" href="/my-notes/assets/commit-standard.html-Dt2VFdgA.js" as="script"><link rel="prefetch" href="/my-notes/assets/git-rebase.html-5wkZLz8T.js" as="script"><link rel="prefetch" href="/my-notes/assets/reset-and-revert.html-BhSFsJq1.js" as="script"><link rel="prefetch" href="/my-notes/assets/knowledge-points.html-B2O4KKaC.js" as="script"><link rel="prefetch" href="/my-notes/assets/sample-template.html-BJGDARML.js" as="script"><link rel="prefetch" href="/my-notes/assets/bit-operation.html-gKFO4mJr.js" as="script"><link rel="prefetch" href="/my-notes/assets/code-snippet.html-gQq0PJVb.js" as="script"><link rel="prefetch" href="/my-notes/assets/code-style.html-uw-kEYpt.js" as="script"><link rel="prefetch" href="/my-notes/assets/cross-domain.html-BxUdww5M.js" as="script"><link rel="prefetch" href="/my-notes/assets/design-pattern.html-ViJaG_TU.js" as="script"><link rel="prefetch" href="/my-notes/assets/file-operation.html-Dt42CFml.js" as="script"><link rel="prefetch" href="/my-notes/assets/handwriting-knowledge.html-gf4KrkU6.js" as="script"><link rel="prefetch" href="/my-notes/assets/knowledge-points.html-CpwAlHsT.js" as="script"><link rel="prefetch" href="/my-notes/assets/performance-optimization.html-Bvsor99E.js" as="script"><link rel="prefetch" href="/my-notes/assets/principle-analysis.html-DQVjDqeO.js" as="script"><link rel="prefetch" href="/my-notes/assets/regular-expression.html-Be5wDEWP.js" as="script"><link rel="prefetch" href="/my-notes/assets/algorithm.html-C3R0Iotq.js" as="script"><link rel="prefetch" href="/my-notes/assets/character-encoding.html-CKY3_eG6.js" as="script"><link rel="prefetch" href="/my-notes/assets/network.html-CrImAjHR.js" as="script"><link rel="prefetch" href="/my-notes/assets/index.html-2Ai7tf9F.js" as="script"><link rel="prefetch" href="/my-notes/assets/ahooks.html-Be1aHfCR.js" as="script"><link rel="prefetch" href="/my-notes/assets/api.html-DE3AQoJT.js" as="script"><link rel="prefetch" href="/my-notes/assets/code-standard.html-nln_v_bs.js" as="script"><link rel="prefetch" href="/my-notes/assets/dva.html-CT5RYP2E.js" as="script"><link rel="prefetch" href="/my-notes/assets/react-router.html-DqKmUik3.js" as="script"><link rel="prefetch" href="/my-notes/assets/redux.html-C48gdlZV.js" as="script"><link rel="prefetch" href="/my-notes/assets/umijs.html-CUdn3bF3.js" as="script"><link rel="prefetch" href="/my-notes/assets/use.html-Db2b_B58.js" as="script"><link rel="prefetch" href="/my-notes/assets/basic-knowledge.html-BTk8P58Y.js" as="script"><link rel="prefetch" href="/my-notes/assets/to-use.html-CIGxwjaw.js" as="script"><link rel="prefetch" href="/my-notes/assets/index.html-Co1m3TcX.js" as="script"><link rel="prefetch" href="/my-notes/assets/keep-alive.html-DGWIMtvx.js" as="script"><link rel="prefetch" href="/my-notes/assets/knowledge-points.html-BxSrPfsZ.js" as="script"><link rel="prefetch" href="/my-notes/assets/difference-from-vue2.html-Dz94w7T8.js" as="script"><link rel="prefetch" href="/my-notes/assets/practice.html-Bx2_kVB6.js" as="script"><link rel="prefetch" href="/my-notes/assets/style-guide.html-Co3MusCj.js" as="script"><link rel="prefetch" href="/my-notes/assets/vite.html-IEdhpVmk.js" as="script"><link rel="prefetch" href="/my-notes/assets/principle-analysis.html-C9GZJVt6.js" as="script"><link rel="prefetch" href="/my-notes/assets/develop.html-BDo6GN3X.js" as="script"><link rel="prefetch" href="/my-notes/assets/introduction.html-1lTvh1cb.js" as="script">
   </head>
   <body>
-    <div id="app"><!--[--><div class="theme-container"><div class="theme-default-content"><h1>404</h1><blockquote>That&#39;s a Four-Oh-Four.</blockquote><a href="/my-notes/" class="">Take me home</a></div></div><!----><!--]--></div>
-    <script type="module" src="/my-notes/assets/app.972a2f76.js" defer></script>
+    <div id="app"><!--[--><div class="theme-container"><main class="page"><div class="theme-default-content"><h1>404</h1><blockquote>How did we get here?</blockquote><a class="route-link" href="/my-notes/">Take me home</a></div></main></div><!--[--><!----><!--]--><!--]--></div>
+    <script type="module" src="/my-notes/assets/app-ZrMgA43q.js" defer></script>
   </body>
 </html>
