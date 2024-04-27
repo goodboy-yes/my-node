@@ -9,9 +9,6 @@ export default defineUserConfig({
     logo: "https://v2.vuepress.vuejs.org/images/hero.png",
     repo: "https://github.com/goodboy-yes/my-node",
     editLink: false,
-    markdown: {
-      extractHeaders: [1, 2, 3, 4, 5],
-    },
     sidebarDepth: 5,
     navbar: [{ text: "VuePress", link: "https://v2.vuepress.vuejs.org/zh/" }],
     sidebar: [
@@ -78,7 +75,7 @@ export default defineUserConfig({
       },
       {
         text: "Nodejs",
-        link: "/node-js",
+        link: "/node-js/",
       },
       {
         text: "Git",
@@ -129,19 +126,19 @@ export default defineUserConfig({
       },
       {
         text: "发展建议",
-        link: "/development-proposals",
+        link: "/development-proposals/",
       },
       {
         text: "VSCode",
-        link: "/vs-code",
+        link: "/vs-code/",
       },
       {
         text: "Docker",
-        link: "/docker",
+        link: "/docker/",
       },
       {
         text: "收藏",
-        link: "/collection",
+        link: "/collection/",
       },
     ],
   }),
