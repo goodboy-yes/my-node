@@ -136,6 +136,7 @@ export default defineUserConfig({
         text: "Docker",
         link: "/docker/",
       },
+      "/writing/",
       {
         text: "收藏",
         link: "/collection/",

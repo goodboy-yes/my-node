@@ -57,7 +57,7 @@ while (i <= n) {
 
 ## 空间复杂度分析
 
-空间复杂度全称就是**渐进空间复杂度**（asymptotic space complexity），**表示算法的存储空间与数据规模之间的增长关系**
+空间复杂度全称就是**渐进空间复杂度**（asymptotic space complexity），**表示算法的存储空间与数据规模之间的增长关系，是对一个算法在运行过程中临时占用存储空间大小的量度**
 
 ```javascript
 void print(int n) {
